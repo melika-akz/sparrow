@@ -8,3 +8,8 @@ class RoomMember(models.Model):
     room = models.ForeignKey(Room, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
 
+    class Meta:
+        db_table = 'room_member'
+        verbose_name = "Room Member"
+        verbose_name_plural = "Room Members"
+
