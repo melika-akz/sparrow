@@ -10,6 +10,7 @@ class RoomMember(models.Model):
 
     class Meta:
         db_table = 'room_member'
+        unique_together = ('room', 'user')
         verbose_name = "Room Member"
         verbose_name_plural = "Room Members"
 
