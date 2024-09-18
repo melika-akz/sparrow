@@ -1,19 +1,18 @@
-from django.contrib.postgres.aggregates import ArrayAgg
-from django.db.models import OuterRef, Subquery
 from rest_framework import serializers
 
 from authorize.models import User
 from .room_member import RoomMemberSerializer
+from ..entities import RoomRepository
 from ..models import Room
 
 
 class RoomSerializer(serializers.ModelSerializer):
-    member_id = serializers.IntegerField(write_only=True)
-    members = RoomMemberSerializer(many=True, read_only=True)
+    member_id = serializers.IntegerField(write_only=True, required=False)
+    members = RoomMemberSerializer(source='room_members', many=True, read_only=True)
 
     class Meta:
         model = Room
-        fields = ['members', 'member_id']
+        fields = ['id', 'members', 'member_id', 'type', 'name']
 
     def validate(self, data):
         member_id = data.get('member_id')
@@ -22,33 +21,51 @@ class RoomSerializer(serializers.ModelSerializer):
         return data
 
     def create(self, validated_data):
-        member_id = validated_data.pop('member_id')
         current_member = self.context['request'].user
-        member = User.objects.filter(id=member_id).first()
-        if member is None:
-            raise serializers.ValidationError('Member Not Exist')
-
-        direct = self.check_exist_room(destination_id=member_id, source_id=current_member.id)
-        room = super().create(validated_data)
-        room.add_member(current_member)
-        room.add_member(member)
+        type_ = validated_data['type']
+        if type_ == 'D' or type_ == 'Direct':
+            room = self.create_direct(
+                current_member=current_member,
+                validated_data=validated_data
+            )
+        else:
+            room = self.create_room(
+                current_member=current_member,
+                validated_data=validated_data
+            )
         return room
 
-    def check_exist_room(self, destination_id, source_id):
-        from ..models import RoomMember
+    @staticmethod
+    def create_direct(validated_data, current_member):
+        destination_member = validated_data.pop('member_id')
+        destination_member = User.objects.filter(id=destination_member).first()
+        if destination_member is None:
+            raise serializers.ValidationError('Member Not Exist')
 
-        # Subquery to get the CTE results
-        cte_subquery = RoomMember.objects.filter(
-            room_id=OuterRef('pk'),
-        ).values('room_id').annotate(
-            members=ArrayAgg('user_id', ordering=['user_id'])
-        ).values('members')
+        room = RoomRepository.check_exist_direct_room(
+            destination_id=destination_member.id,
+            source_id=current_member.id
+        )
+        if room is None:
+            room = Room.objects.create(
+                name='',
+                type='D'
+            )
+            room.add_member(current_member, room)
+            room.add_member(destination_member, room)
+        return room
 
-        # Query to filter Directs based on the CTE results
-        direct = Room.objects.filter(
-            id__in=Subquery(cte_subquery),
-            type='Direct',
-            roommember__members=sorted([source_id, destination_id])
-        ).distinct().first()
+    @staticmethod
+    def create_room(current_member, validated_data):
+        room = RoomRepository.check_exist_room(
+            name=validated_data['name'],
+            type_=validated_data['type']
+        )
+        if room is None:
+            room = Room.objects.create(
+                name=validated_data['name'],
+                type=validated_data['type']
+            )
+            room.add_member(current_member, room)
+        return room
 
-        return direct
