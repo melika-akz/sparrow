@@ -5,8 +5,13 @@ from django.db import models
 
 class UserManager(BaseUserManager):
 
-    def create_user(self, title, email, password):
-        user = self.model(title=title, email=email)
+    def create_user(self, title, email, password, first_name, last_name):
+        user = self.model(
+            title=title,
+            email=email,
+            first_name=first_name,
+            last_name=last_name
+        )
         user.set_password(password)
         user.save()
         return user
@@ -49,6 +54,9 @@ class User(AbstractBaseUser, PermissionsMixin):
         """Does the user have permissions to view the app `app_label`?"""
         # Simplest possible answer: Yes, always
         return True
+
+    def full_name(self):
+        return f'{self.first_name} {self.last_name}'
 
     @property
     def is_staff(self):

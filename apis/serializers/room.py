@@ -7,6 +7,7 @@ from ..models import Room
 
 
 class RoomSerializer(serializers.ModelSerializer):
+    name = serializers.CharField(required=False)
     member_id = serializers.IntegerField(write_only=True, required=False)
     members = RoomMemberSerializer(source='room_members', many=True, read_only=True)
 
@@ -48,7 +49,7 @@ class RoomSerializer(serializers.ModelSerializer):
         )
         if room is None:
             room = Room.objects.create(
-                name='',
+                name=f'{destination_member.full_name()}',
                 type='D'
             )
             room.add_member(current_member, room)
