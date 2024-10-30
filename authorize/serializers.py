@@ -16,5 +16,12 @@ class DRFTokenSerializer(TokenObtainPairSerializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'title', 'email']  # Include any other fields you need
+        fields = ['id', 'title', 'email', 'password', 'first_name', 'last_name']
+        extra_kwargs = {
+            'password': {'write_only': True}
+        }
+
+    def create(self, validated_data):
+        user = User.objects.create_user(**validated_data)
+        return user
 

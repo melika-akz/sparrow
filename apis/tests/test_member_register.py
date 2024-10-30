@@ -1,9 +1,6 @@
-import json
-
 import pytest
 from rest_framework.test import APITransactionTestCase
 
-from authorize.helpers import generate_jwt_token
 from authorize.models import User
 from .helpers import _client
 
@@ -25,7 +22,7 @@ class TestMember(APITransactionTestCase):
         """Creating Member"""
         response = _client(
             self,
-            path='/apiv1/members/',
+            path='/tokens/register/',
             method='POST',
             data=dict(
                 title='member2',
@@ -44,7 +41,7 @@ class TestMember(APITransactionTestCase):
 
         response = _client(
             self,
-            path='/apiv1/members/',
+            path='/tokens/register/',
             method='POST',
             data=dict(
                 title='member3',

@@ -21,6 +21,8 @@ class UserManager(BaseUserManager):
             title=title,
             email=email,
             password=password,
+            first_name=None,
+            last_name=None
         )
         user.is_admin = True
         user.save()
