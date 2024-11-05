@@ -13,3 +13,5 @@ typing_extensions==4.12.2
 zipp==3.20.1
 pytest==7.4.2
 pytest-django==4.5.2
+drf-yasg
+django-cors-headers
