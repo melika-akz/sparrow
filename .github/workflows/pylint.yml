@@ -1,6 +1,6 @@
-name: Pylint
+name: Django CI
 
-on: [push]
+on: [push, pull_request]
 
 jobs:
   build:
@@ -8,16 +8,35 @@ jobs:
     strategy:
       matrix:
         python-version: ["3.8", "3.10", "3.12"]
+        
     steps:
-    - uses: actions/checkout@v4
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v3
-      with:
-        python-version: ${{ matrix.python-version }}
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install pylint
-    - name: Analysing the code with pylint
-      run: |
-        pylint $(git ls-files '*.py')
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v3
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install flake8 isort pytest pytest-django
+
+      - name: Install project dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Run Tests with Pytest
+        env:
+          DJANGO_SETTINGS_MODULE: sparrow.settings  # replace with your Django settings module
+        run: |
+          pytest
+
+      - name: Lint Code with Flake8
+        run: |
+          flake8 .
+
+      - name: Check Import Order with isort
+        run: |
+          isort --check.
+
