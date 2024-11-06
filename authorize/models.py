@@ -3,33 +3,33 @@ from django.contrib.auth.models import PermissionsMixin
 from django.db import models
 
 
-class UserManager(BaseUserManager):
+class MemberManager(BaseUserManager):
 
     def create_user(self, title, email, password, first_name, last_name):
-        user = self.model(
+        member = self.model(
             title=title,
             email=email,
             first_name=first_name,
             last_name=last_name
         )
-        user.set_password(password)
-        user.save()
-        return user
+        member.set_password(password)
+        member.save()
+        return member
 
     def create_superuser(self, title, email, password):
-        user = self.create_user(
+        member = self.create_user(
             title=title,
             email=email,
             password=password,
             first_name=None,
             last_name=None
         )
-        user.is_admin = True
-        user.save()
-        return user
+        member.is_admin = True
+        member.save()
+        return member
 
 
-class User(AbstractBaseUser, PermissionsMixin):
+class Member(AbstractBaseUser, PermissionsMixin):
 
     id = models.AutoField(primary_key=True)
     title = models.CharField(max_length=255, unique=True)
@@ -42,7 +42,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_admin = models.BooleanField(default=False)
     password = models.CharField(max_length=255)
 
-    objects = UserManager()
+    objects = MemberManager()
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['title']
@@ -67,7 +67,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         return self.is_admin
 
     class Meta:
-        db_table = 'user'
-        verbose_name_plural = 'user'
+        db_table = 'member'
+        verbose_name_plural = 'member'
         ordering = ['id']
 

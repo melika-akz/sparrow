@@ -4,9 +4,9 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenObtainPairView
 
-from .entities import UserRepository
-from .models import User
-from .serializers import DRFTokenSerializer, UserSerializer
+from .entities import MemberRepository
+from .models import Member
+from .serializers import DRFTokenSerializer, MemberSerializer
 
 
 class TokenController(TokenObtainPairView):
@@ -14,8 +14,8 @@ class TokenController(TokenObtainPairView):
 
 
 class MemberView(APIView):
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
+    queryset = Member.objects.all()
+    serializer_class = MemberSerializer
 
     def get_permissions(self):
         if self.request.method in ['PUT']:
@@ -23,7 +23,7 @@ class MemberView(APIView):
         return [AllowAny()]
 
     def post(self, request):
-        serializer = UserSerializer(data=request.data)
+        serializer = MemberSerializer(data=request.data)
 
         if serializer.is_valid():
             user = serializer.save()
@@ -36,8 +36,21 @@ class MemberView(APIView):
 
     def put(self, request, member_id):
         member = UserRepository.get_by_id(member_id)
-        serializer = UserSerializer(member, data=request.data)
+        serializer = MemberSerializer(member, data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def get(self, request):
+        objects = Member.objects.all()
+        serializer = MemberSerializer(objects, many=True)
+        return Response(serializer.data)
+
+
+class MemberDetailView(APIView):
+    def get(self, request, member_id):
+        member = UserRepository.get_by_id(member_id)
+        serializer = MemberSerializer(member)
+        return Response(serializer.data)
+
