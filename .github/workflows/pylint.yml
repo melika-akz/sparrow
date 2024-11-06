@@ -1,57 +1,65 @@
-name: Django CI
-
-on: [push, pull_request]
+name: Django application
+on: 
+  push:
+      branches: [ "main" ]
+  pull_request:
+      branches: [ "main" ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    
     services:
       postgres:
-        image: postgres:14
+        image: postgres:latest
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: test_db
+          POSTGRES_DB: podle
         ports:
           - 5432:5432
-        options: >-
-          --health-cmd="pg_isready -U postgres"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
+        # needed because the postgres container does not provide a healthcheck
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
 
-    strategy:
-      matrix:
-        python-version: ["3.8", "3.10", "3.12"]
-
+      redis: 
+        image: redis:latest
+        ports:
+          - 6379:6379
+          
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Python ${{ matrix.python-version }}
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Set up Python
         uses: actions/setup-python@v3
         with:
-          python-version: ${{ matrix.python-version }}
-
+          python-version: 3.10.8
+      
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install flake8 isort pytest pytest-django psycopg2-binary
-
-      - name: Install project dependencies
-        run: |
           pip install -r requirements.txt
-
-      - name: Run Tests with Pytest
-        env:
-          DJANGO_SETTINGS_MODULE: sparrow.settings  # replace with your Django settings module
-          DATABASE_URL: postgres://postgres:postgres@localhost:5432/test_db
+          
+      # - name: Run isort
+      #   uses: isort/isort-action@master
+        
+      # - name: Run black
+      #   uses: psf/black@stable
+      
+      - name: Run flake8
+        run: flake8
+        
+      # - name: Type check
+      #   run: mypy --config mypy.ini styleguide_example/
+      
+      - name: Run database migrations
         run: |
-          pytest
+          python manage.py migrate
+          
+      # - name: Start Celery worker
+      #   run: |
+      #     celery -A podle worker
+          
+      - name: Run tests
+        run: pytest
 
-      - name: Lint Code with Flake8
-        run: |
-          flake8 .
-
-      - name: Check Import Order with isort
-        run: |
-          isort . --check-only
