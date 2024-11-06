@@ -1,0 +1,20 @@
+# https://www.flake8rules.com/
+
+[flake8]
+max-line-length = 120
+extend-ignore = E,F,W,C
+select = E113,E115,E111,E201,E202,E203,E211,E221,E222,E261,E271,E272,E305,
+         E306,E304,E302,E303,E401,E501,E502,W293,F401,F402,F403,F405,F811,
+         F823,F831,F841,F901
+exclude = .git,__pycache__,docs/source/conf.py,old,build,dist,
+    ./apis/migrations/*,
+    ./apis/entities/__init__.py,
+    ./authorize/entities/__init__.py,
+    ./apis/models/__init__.py,
+    ./apis/views/__init__.py,
+    ./apis/serializers/__init__.py,
+    ./authorize/migrations/*,
+    ./apis/management/*
+    settings.py
+max-complexity = 10
+

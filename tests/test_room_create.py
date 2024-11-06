@@ -1,12 +1,11 @@
-import json
-
 import pytest
 from rest_framework.test import APITransactionTestCase
 
+from apis.models import RoomMember
 from authorize.helpers import generate_jwt_token
 from authorize.models import User
+
 from .helpers import _client
-from ..models import RoomMember
 
 
 class TestRoom(APITransactionTestCase):
@@ -35,13 +34,14 @@ class TestRoom(APITransactionTestCase):
 
         response = _client(
             self,
-            path='/apiv1/rooms/',
+            path='/sparrow/apiv1/rooms/',
             method='POST',
             data=dict(
                 type='D',
-                member_id=2,
+                member_id=self.user2.id,
             ),
         )
+        print(response.data)
         assert response.status_code == 201
         assert response.data['id'] is not None
         assert response.data['name'] == 'member 2 first name member 2 last name'
@@ -53,7 +53,7 @@ class TestRoom(APITransactionTestCase):
 
         response = _client(
             self,
-            path='/apiv1/rooms/',
+            path='/sparrow/apiv1/rooms/',
             method='POST',
             data=dict(
                 type='D',
@@ -61,6 +61,7 @@ class TestRoom(APITransactionTestCase):
             ),
         )
         assert response.status_code == 400
+        print(response.data)
         self.assertEqual(response.data['detail'], 'You cannot create a room to chat with yourself.')
 
 

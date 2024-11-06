@@ -1,9 +1,10 @@
 from rest_framework import serializers
 
 from authorize.models import User
-from .room_member import RoomMemberSerializer
+
 from ..entities import RoomRepository
 from ..models import Room
+from .room_member import RoomMemberSerializer
 
 
 class RoomSerializer(serializers.ModelSerializer):
@@ -38,8 +39,8 @@ class RoomSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def create_direct(validated_data, current_member):
-        destination_member = validated_data.pop('member_id')
-        destination_member = User.objects.filter(id=destination_member).first()
+        destination_member_id = validated_data.pop('member_id')
+        destination_member = User.objects.filter(id=destination_member_id).first()
         if destination_member is None:
             raise serializers.ValidationError('Member Not Exist')
 

@@ -1,6 +1,6 @@
 from django.core.management import CommandError
 from django.core.management.base import BaseCommand
-from django.db import connections, ProgrammingError, OperationalError
+from django.db import OperationalError, ProgrammingError, connections
 
 from sparrow import settings
 

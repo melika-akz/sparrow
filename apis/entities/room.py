@@ -1,4 +1,4 @@
-from ..models import RoomMember, Room
+from ..models import Room, RoomMember
 
 
 class RoomRepository:

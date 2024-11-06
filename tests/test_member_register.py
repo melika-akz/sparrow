@@ -2,6 +2,7 @@ import pytest
 from rest_framework.test import APITransactionTestCase
 
 from authorize.models import User
+
 from .helpers import _client
 
 
@@ -22,8 +23,8 @@ class TestMember(APITransactionTestCase):
         """Creating Member"""
         response = _client(
             self,
-            path='/tokens/register/',
-            method='POST',
+            path='/apiv1/members/',
+            method='post',
             data=dict(
                 title='member2',
                 email='member2@example.com',
@@ -41,8 +42,8 @@ class TestMember(APITransactionTestCase):
 
         response = _client(
             self,
-            path='/tokens/register/',
-            method='POST',
+            path='/apiv1/members/',
+            method='post',
             data=dict(
                 title='member3',
                 first_name='member 3 first name',

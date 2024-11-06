@@ -1,2 +1,2 @@
-from .room import RoomViewSet
+from .room import RoomView
 
