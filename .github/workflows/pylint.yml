@@ -5,10 +5,25 @@ on: [push, pull_request]
 jobs:
   build:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
     strategy:
       matrix:
         python-version: ["3.8", "3.10", "3.12"]
-        
+
     steps:
       - uses: actions/checkout@v4
 
@@ -20,7 +35,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install flake8 isort pytest pytest-django
+          pip install flake8 isort pytest pytest-django psycopg2-binary
 
       - name: Install project dependencies
         run: |
@@ -29,6 +44,7 @@ jobs:
       - name: Run Tests with Pytest
         env:
           DJANGO_SETTINGS_MODULE: sparrow.settings  # replace with your Django settings module
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/test_db
         run: |
           pytest
 
@@ -38,5 +54,4 @@ jobs:
 
       - name: Check Import Order with isort
         run: |
-          isort --check.
-
+          isort . --check-only
