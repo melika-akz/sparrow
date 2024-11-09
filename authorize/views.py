@@ -35,7 +35,7 @@ class MemberView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def put(self, request, member_id):
-        member = UserRepository.get_by_id(member_id)
+        member = MemberRepository.get_by_id(member_id)
         serializer = MemberSerializer(member, data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -50,7 +50,7 @@ class MemberView(APIView):
 
 class MemberDetailView(APIView):
     def get(self, request, member_id):
-        member = UserRepository.get_by_id(member_id)
+        member = MemberRepository.get_by_id(member_id)
         serializer = MemberSerializer(member)
         return Response(serializer.data)
 
