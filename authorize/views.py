@@ -26,9 +26,9 @@ class MemberView(APIView):
         serializer = MemberSerializer(data=request.data)
 
         if serializer.is_valid():
-            user = serializer.save()
+            member = serializer.save()
             return Response(
-                {"id": user.id, "title": user.title, "email": user.email},
+                {"id": member.id, "title": member.title, "email": member.email},
                 status=status.HTTP_201_CREATED
             )
 

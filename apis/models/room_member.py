@@ -7,7 +7,7 @@ from . import Room
 
 class RoomMember(models.Model):
     room = models.ForeignKey(Room, related_name='room_members', on_delete=models.CASCADE)
-    user = models.ForeignKey(Member, on_delete=models.CASCADE)
+    member = models.ForeignKey(Member, on_delete=models.CASCADE)
 
     class Meta:
         db_table = 'room_member'

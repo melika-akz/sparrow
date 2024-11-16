@@ -6,9 +6,9 @@ from ..models import RoomMember
 
 
 class RoomMemberSerializer(serializers.ModelSerializer):
-    user = MemberSerializer()  # Nested serializer for User
+    member = MemberSerializer()  # Nested serializer for User
 
     class Meta:
         model = RoomMember
-        fields = ['user']
+        fields = ['member']
 

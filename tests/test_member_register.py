@@ -1,7 +1,7 @@
 import pytest
 from rest_framework.test import APITransactionTestCase
 
-from authorize.models import User
+from authorize.models import Member
 
 from .helpers import _client
 
@@ -11,7 +11,7 @@ class TestMember(APITransactionTestCase):
     @classmethod
     @pytest.mark.django_db
     def setUp(cls):
-        cls.user = User.objects.create_user(
+        cls.member = Member.objects.create(
             title='member',
             first_name='member first name',
             last_name='member last name',
@@ -37,7 +37,7 @@ class TestMember(APITransactionTestCase):
         assert response.data['id'] is not None
         assert response.data['title'] == 'member2'
 
-        member = User.objects.filter(id=response.data['id']).first()
+        member = Member.objects.filter(id=response.data['id']).first()
         assert member.title == response.data['title']
 
         response = _client(

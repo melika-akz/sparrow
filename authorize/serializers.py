@@ -24,8 +24,8 @@ class MemberSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         password = validated_data.pop('password')
-        user = Member.objects.create(**validated_data, password=password)
-        return user
+        member = Member.objects.create(**validated_data, password=password)
+        return member
 
     def update(self, instance, validated_data):
         password = validated_data.pop('password', None)
