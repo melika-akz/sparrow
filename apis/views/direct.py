@@ -3,6 +3,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from ..entities import RoomRepository
 from ..models import Room
 from ..serializers import DirectSerializer
 
@@ -21,6 +22,15 @@ class DirectView(APIView):
 
     def get(self, request):
         rooms = Room.objects.filter(room_members__member_id=request.user.id)
-        serializer = self.serializer_class(rooms, many=True)  # Serialize the queryset
+        serializer = self.serializer_class(rooms, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class DirectDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, room_id):
+        room = RoomRepository.get_by_id(room_id)
+        serializer = DirectSerializer(room)
+        return Response(serializer.data)
 
