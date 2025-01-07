@@ -4,6 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from ..decorator import send_websocket_message
 from ..models import Message, Room
 from ..serializers import MessageSerializer
 
@@ -19,6 +20,7 @@ class MessageView(APIView):
         except Room.DoesNotExist:
             raise NotFound(detail="Room not found")
 
+    @send_websocket_message('chat_some_channel')
     def post(self, request, room_id):
         room = self.get_object(room_id)
         serializer = MessageSerializer(data=request.data, context={'request': request, 'room': room})
