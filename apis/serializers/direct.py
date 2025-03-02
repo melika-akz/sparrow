@@ -1,11 +1,12 @@
+from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 
-from ..constants import DIRECT
-from ..entities import RoomRepository
-from ..models import Room
 from authorize.models import Member
 from .message import MessageSerializer
 from .room_member import RoomMemberSerializer
+from ..constants import DIRECT
+from ..entities import RoomRepository
+from ..models import Room
 
 
 class DirectSerializer(serializers.ModelSerializer):
@@ -20,53 +21,41 @@ class DirectSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         member_id = data.get('member_id')
-        if member_id == self.context['request'].user.id:
+        current_member = self.context['request'].user
+
+        if member_id == current_member.id:
             raise serializers.ValidationError('You cannot create a direct with yourself.')
+
+        if not Member.objects.filter(id=member_id).exists():
+            raise serializers.ValidationError({'member_id': 'The selected member does not exist.'})
+
         return data
 
     def create(self, validated_data):
         current_member = self.context['request'].user
         type_ = validated_data['type']
-        if type_ == DIRECT:
-            room = self.create_direct(
-                current_member=current_member,
-                validated_data=validated_data
-            )
-            return room
-        else:
-            raise serializers.ValidationError('Invalid Direct Type')
+
+        if type_ != DIRECT:
+            raise serializers.ValidationError({'type': 'Invalid direct chat type.'})
+
+        return self.create_direct(validated_data, current_member)
 
     @staticmethod
     def create_direct(validated_data, current_member):
+        """Handles the creation of direct messages between two members."""
         destination_member_id = validated_data.pop('member_id')
-        destination_member = Member.objects.filter(id=destination_member_id).first()
-        if destination_member is None:
-            raise serializers.ValidationError('Member Not Exist')
+        destination_member = get_object_or_404(Member, id=destination_member_id)
 
-        room = RoomRepository.check_exist_direct_room(
-            destination_id=destination_member.id,
-            source_id=current_member.id
+        room, created = RoomRepository.get_or_create_direct_room(
+            destination_member=destination_member,
+            current_member=current_member
         )
-        if room is None:
-            room = Room.objects.create(
-                name=f'{destination_member.full_name()}',
-                type=DIRECT,
-            )
+
+        if created:
+            room.name = destination_member.full_name()
+            room.save()
             room.add_member(current_member, room)
             room.add_member(destination_member, room)
         return room
 
-    @staticmethod
-    def create_room(current_member, validated_data):
-        room = RoomRepository.check_exist_room(
-            name=validated_data['name'],
-            type_=validated_data['type']
-        )
-        if room is None:
-            room = Room.objects.create(
-                name=validated_data['name'],
-                type=validated_data['type']
-            )
-            room.add_member(current_member, room)
-        return room
 

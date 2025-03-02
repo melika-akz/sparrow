@@ -1,37 +1,46 @@
-from rest_framework import status
-from rest_framework.exceptions import NotFound
+from django.shortcuts import get_object_or_404
+from django.utils import timezone
+from rest_framework import generics, status
+from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.views import APIView
 
 from ..decorator import send_websocket_message
 from ..models import Message, Room
 from ..serializers import MessageSerializer
 
 
-class MessageView(APIView):
-    queryset = Message.objects.all()
+class MessageView(generics.ListCreateAPIView):
     serializer_class = MessageSerializer
     permission_classes = [IsAuthenticated]
 
-    def get_object(self, room_id):
-        try:
-            return Room.objects.get(id=room_id)
-        except Room.DoesNotExist:
-            raise NotFound(detail="Room not found")
+    def get_queryset(self):
+        room_id = self.kwargs.get('room_id')
+        get_object_or_404(Room, id=room_id)
+        return Message.objects.filter(room_id=room_id).select_related('sender', 'room').order_by('created_at')
+
+    def perform_create(self, serializer):
+        room_id = self.kwargs.get('room_id')
+        room = get_object_or_404(Room, id=room_id)
+
+        serializer.save(sender=self.request.user, room=room)
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        room_id = self.kwargs.get('room_id')
+        context['room'] = get_object_or_404(Room, id=room_id)
+        return context
 
     @send_websocket_message('chat_some_channel')
-    def post(self, request, room_id):
-        room = self.get_object(room_id)
-        serializer = MessageSerializer(data=request.data, context={'request': request, 'room': room})
-        if serializer.is_valid(raise_exception=True):
-            message = serializer.save()
-            return Response(MessageSerializer(message).data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    def create(self, request, *args, **kwargs):
+        return super().create(request, *args, **kwargs)
 
-    def get(self, request, room_id):
-        self.get_object(room_id)
-        messages = Message.objects.filter(room__id=room_id, sender__id=request.user.id)
-        serializer = self.serializer_class(messages, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+
+class MessageDetailView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = MessageSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        room_id = self.kwargs.get('room_id')
+        return Message.objects.filter(room_id=room_id).select_related('sender', 'room')
 

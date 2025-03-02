@@ -1,12 +1,15 @@
 import pytest
 from rest_framework.test import APITransactionTestCase
+from channels.testing import WebsocketCommunicator
+from django.urls import reverse
 
 from apis.constants import DIRECT
-from apis.models import RoomMember, Room
+from apis.models import RoomMember, Room, Message
 from authorize.helpers import generate_jwt_token
 from authorize.models import Member
 
 from .helpers import _client
+from sparrow.asgi import application  # Correct import statement
 
 
 class TestRoom(APITransactionTestCase):
@@ -70,11 +73,11 @@ class TestRoom(APITransactionTestCase):
 
         response = _client(
             self,
-            path=f'/sparrow/apiv1/rooms/{self.direct1.id}/messages',
+            path=f'/sparrow/apiv1/rooms/{self.direct1.id}/messages/',
             method='POST',
             data=dict(body='this is a message'),
         )
-        assert response.status_code == 200
+        assert response.status_code == 201
         assert response.data['id'] is not None
         assert response.data['body'] == 'this is a message'
         assert response.data['sender_id'] == self.member.id
@@ -84,7 +87,7 @@ class TestRoom(APITransactionTestCase):
 
         response = _client(
             self,
-            path=f'/sparrow/apiv1/rooms/{self.direct2.id}/messages',
+            path=f'/sparrow/apiv1/rooms/{self.direct2.id}/messages/',
             method='POST',
             data=dict(body='this is a message'),
         )

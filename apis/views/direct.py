@@ -1,36 +1,26 @@
-from rest_framework import status
+from django.shortcuts import get_object_or_404
+from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
-from rest_framework.views import APIView
 
-from ..entities import RoomRepository
 from ..models import Room
 from ..serializers import DirectSerializer
 
 
-class DirectView(APIView):
+class DirectView(generics.ListCreateAPIView):
     queryset = Room.objects.all()
     serializer_class = DirectSerializer
     permission_classes = [IsAuthenticated]
 
-    def post(self, request):
-        serializer = DirectSerializer(data=request.data, context={'request': request})
-        if serializer.is_valid(raise_exception=True):
-            room = serializer.save()
-            return Response(DirectSerializer(room).data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def get(self, request):
-        rooms = Room.objects.filter(room_members__member_id=request.user.id)
-        serializer = self.serializer_class(rooms, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+    def get_queryset(self):
+        return Room.objects.filter(room_members__member=self.request.user).distinct().prefetch_related('room_members')
 
 
-class DirectDetailView(APIView):
+class DirectDetailView(generics.RetrieveAPIView):
+    queryset = Room.objects.all()
+    serializer_class = DirectSerializer
     permission_classes = [IsAuthenticated]
+    lookup_field = 'id'
 
-    def get(self, request, room_id):
-        room = RoomRepository.get_by_id(room_id)
-        serializer = DirectSerializer(room)
-        return Response(serializer.data)
+    def get_object(self):
+        return get_object_or_404(Room, id=self.kwargs['room_id'])
 

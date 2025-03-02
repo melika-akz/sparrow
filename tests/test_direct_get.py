@@ -91,3 +91,10 @@ class TestRoom(APITransactionTestCase):
         assert response.data['id'] == self.direct1.id
         assert response.data['type'] == DIRECT
 
+        response = _client(
+            self,
+            path='/sparrow/apiv1/directs/0/',
+            method='GET',
+        )
+        assert response.status_code == 404
+

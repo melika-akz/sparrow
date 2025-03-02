@@ -1,7 +1,7 @@
 import pytest
 from rest_framework.test import APITransactionTestCase
 
-from apis.constants import DIRECT
+from apis.constants import DIRECT, GROUP
 from apis.models import RoomMember
 from authorize.helpers import generate_jwt_token
 from authorize.models import Member
@@ -34,31 +34,20 @@ class TestRoom(APITransactionTestCase):
 
         response = _client(
             self,
-            path='/sparrow/apiv1/directs/',
+            path='/sparrow/apiv1/rooms/',
             method='POST',
             data=dict(
-                type=DIRECT,
-                member_id=self.member2.id,
+                type=GROUP,
+                members=[self.member2.id],
+                name='The Group Name'
             ),
         )
         assert response.status_code == 201
         assert response.data['id'] is not None
-        assert response.data['name'] == 'member 2 first name member 2 last name'
-        assert response.data['type'] == DIRECT
+        assert response.data['name'] == 'The Group Name'
+        assert response.data['type'] == GROUP
 
         room_member = RoomMember.objects.filter(room_id=response.data['id'])
         for member in room_member:
             assert member.id in [self.member2.id, self.member.id]
-
-        response = _client(
-            self,
-            path='/sparrow/apiv1/directs/',
-            method='POST',
-            data=dict(
-                type=DIRECT,
-                member_id=1,
-            ),
-        )
-        assert response.status_code == 400
-        self.assertEqual(response.data['detail'], 'You cannot create a direct with yourself.')
 

@@ -1,11 +1,10 @@
 import pytest
 from rest_framework.test import APITransactionTestCase
 
-from apis.constants import DIRECT
+from apis.constants import DIRECT, GROUP
 from apis.models import RoomMember, Room
 from authorize.helpers import generate_jwt_token
 from authorize.models import Member
-
 from .helpers import _client
 
 
@@ -50,48 +49,65 @@ class TestRoom(APITransactionTestCase):
             member=cls.member2
         )
 
-        cls.direct2 = Room.objects.create(
-            name='direct 2',
-            type=DIRECT,
+        cls.group = Room.objects.create(
+            name='group 1',
+            type=GROUP,
         )
 
         RoomMember.objects.create(
-            room=cls.direct2,
+            room=cls.group,
             member=cls.member
         )
         RoomMember.objects.create(
-            room=cls.direct2,
+            room=cls.group,
             member=cls.member3
         )
 
-        cls.direct3 = Room.objects.create(
-            name='direct 3',
-            type=DIRECT,
+        cls.group2 = Room.objects.create(
+            name='group 2',
+            type=GROUP,
         )
 
         RoomMember.objects.create(
-            room=cls.direct3,
+            room=cls.group2,
             member=cls.member2
         )
         RoomMember.objects.create(
-            room=cls.direct3,
+            room=cls.group2,
+            member=cls.member3
+        )
+        RoomMember.objects.create(
+            room=cls.group2,
+            member=cls.member
+        )
+
+        cls.group3 = Room.objects.create(
+            name='group 3',
+            type=GROUP,
+        )
+
+        RoomMember.objects.create(
+            room=cls.group3,
+            member=cls.member2
+        )
+        RoomMember.objects.create(
+            room=cls.group3,
             member=cls.member3
         )
 
-    def test_list(self):
+    def test_update(self):
         self.jwt_token = generate_jwt_token(self.member.id)
         self.client.force_authenticate(user=self.member, token=self.jwt_token)
 
         response = _client(
             self,
-            path='/sparrow/apiv1/directs/',
-            method='GET',
+            path=f'/sparrow/apiv1/rooms/{self.group.id}/',
+            method='PUT',
+            data=dict(
+                name='new group name',
+            )
         )
         assert response.status_code == 200
-        assert len(response.data['results']) == 2
-        for data in response.data['results']:
-            assert data['id'] in [self.direct1.id, self.direct2.id]
-            assert data['type'] == DIRECT
-
-
+        assert response.data['id'] == self.group.id
+        assert response.data['name'] == 'new group name'
 

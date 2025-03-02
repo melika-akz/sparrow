@@ -1,37 +1,43 @@
+import asyncio
 from functools import wraps
 from channels.layers import get_channel_layer
-from django.http import JsonResponse
 
+def send_websocket_message(channel_name):
+    """Decorator to send message data over WebSocket after API call."""
 
-def send_websocket_message(group_name, message_key='message'):
-    """
-    Decorator to send a message to a WebSocket group.
+    def decorator(func):
 
-    :param group_name: The WebSocket group name to send the message to
-    :param message_key: The key for the message in the view's request data (defaults to 'message')
-    """
+        @wraps(func)
+        def wrapper(self, request, *args, **kwargs):
+            response = func(self, request, *args, **kwargs)
+            if response.status_code == 201:
+                message_data = response.data  # the serialized message data
+                room_id = kwargs.get('room_id')
 
-    def decorator(view_func):
-        @wraps(view_func)
-        def _wrapped_view(request, *args, **kwargs):
-            # Get the message from the request
-            message = request.data.get(message_key)
-            if not message:
-                return JsonResponse({'error': 'Message is required'}, status=400)
+                async def send_message():
+                    channel_layer = get_channel_layer()
+                    await channel_layer.group_send(
+                        f"chat_{room_id}",  # target group name
+                        {
+                            "type": "chat.message",  # handler type in consumers
+                            "message": message_data,
+                        }
+                    )
 
-            # Send the message to the WebSocket (via channel layer)
-            channel_layer = get_channel_layer()
-            channel_layer.group_send(
-                group_name,  # WebSocket group name
-                {
-                    'type': 'send_message',  # Method to call in the consumer
-                    'message': message
-                }
-            )
+                # Try to get an already running loop.
+                try:
+                    loop = asyncio.get_running_loop()
+                except RuntimeError:
+                    loop = None
 
-            # Call the original view function
-            return view_func(request, *args, **kwargs)
+                if loop and loop.is_running():
+                    # If there's a running loop (e.g. in an async context), schedule the task.
+                    asyncio.create_task(send_message())
+                else:
+                    # Otherwise, run the coroutine in a new event loop.
+                    asyncio.run(send_message())
 
-        return _wrapped_view
-
+            return response
+        return wrapper
     return decorator
+
