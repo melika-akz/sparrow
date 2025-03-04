@@ -9,7 +9,7 @@ class MessageSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Message
-        fields = ['id', 'body', 'sender_id', 'created_at', 'seen_at', 'room_id']
+        fields = ['id', 'body', 'sender_id', 'created_at', 'seen_at', 'seen_by', 'room_id']
 
     def validate(self, data):
         sender = self.context['request'].user
