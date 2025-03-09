@@ -1,66 +1,61 @@
 import json
+import asyncio
 from channels.generic.websocket import AsyncWebsocketConsumer
-from django.utils.timezone import now
-from asgiref.sync import sync_to_async
-from apis.models import Message
+import logging
 
+
+logger = logging.getLogger(__name__)
 
 class ChatConsumer(AsyncWebsocketConsumer):
+
     async def connect(self):
-        """Handles new WebSocket connections"""
-        if self.scope["user"].is_anonymous:
-            await self.close()
-            return
+        self.room_id = self.scope['url_route']['kwargs']['room_id']
+        self.group_name = f'chat_{self.room_id}'
 
-        self.room_id = self.scope["url_route"]["kwargs"]["room_id"]
-        self.room_group_name = f"chat_{self.room_id}"
+        # Join the WebSocket group
+        await self.channel_layer.group_add(
+            self.group_name,
+            self.channel_name
+        )
 
-        await self.channel_layer.group_add(self.room_group_name, self.channel_name)
         await self.accept()
+        self.keep_alive_task = asyncio.create_task(self.send_keep_alive())
+
 
     async def disconnect(self, close_code):
-        """Handles WebSocket disconnection"""
-        await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
+        # Leave the WebSocket group
+        await self.channel_layer.group_discard(
+            self.group_name,
+            self.channel_name
+        )
 
     async def receive(self, text_data):
-        """Handles incoming WebSocket messages"""
-        data = json.loads(text_data)
-        action = data.get("action")
+        text_data_json = json.loads(text_data)
+        message = text_data_json.get('message')
+        action = text_data_json.get('action')
 
-        if action == "message_seen":
-            message_id = data.get("message_id")
-            user_id = self.scope["user"].id  # Get the user ID from the WebSocket scope
-            await self.mark_message_as_seen(message_id, user_id)
+        # Broadcast the message to the group
+        await self.channel_layer.group_send(
+            self.group_name,
+            {
+                'type': 'send_message',
+                'message': message,
+                'action': action,
+            }
+        )
 
-    async def mark_message_as_seen(self, message_id, user_id):
-        """Marks a message as seen and notifies the sender"""
-        message = await sync_to_async(Message.objects.filter)(id=message_id)
-        message = await sync_to_async(message.first)()
-
-        if message and message.sender.id != user_id:
-            message.seen_at = now()
-            await sync_to_async(message.save)()
-
-            # Notify the sender
-            await self.channel_layer.group_send(
-                f"chat_{message.room.id}",
-                {
-                    "type": "chat.message.seen",
-                    "message_id": message.id,
-                    "seen_at": message.seen_at.isoformat(),
-                    "seen_by": user_id
-                }
-            )
-
-    async def chat_message_seen(self, event):
-        """Sends a seen notification to the WebSocket clients"""
+    async def send_message(self, event):
+        # Send message to WebSocket
         await self.send(text_data=json.dumps({
-            "action": "message_seen",
-            "message_id": event["message_id"],
-            "seen_at": event["seen_at"],
-            "seen_by": event["seen_by"]
+            'action': event['action'],
+            'message': event['message']
         }))
 
-    async def chat_message(self, event):
-        """Sends message data to WebSocket clients"""
-        await self.send(json.dumps(event["message"]))  # Send full message data
+    async def send_keep_alive(self):
+        while True:
+            await asyncio.sleep(30)
+            await self.send(text_data=json.dumps({
+                'action': 'answer',
+                'message': 'keep-alive',
+            }))
+

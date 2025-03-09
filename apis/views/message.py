@@ -1,6 +1,9 @@
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
 from django.shortcuts import get_object_or_404
 from django.utils.timezone import now
 from rest_framework import generics, status
+from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -31,9 +34,18 @@ class MessageView(generics.ListCreateAPIView):
         context['room'] = get_object_or_404(Room, id=room_id)
         return context
 
-    @send_websocket_message('chat_some_channel')
     def create(self, request, *args, **kwargs):
-        return super().create(request, *args, **kwargs)
+        response = super().create(request, *args, **kwargs)
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)(
+            f'chat_{self.kwargs.get("room_id")}',  # The room group name
+            {
+                'type': 'send_message',
+                'message': response.data,
+                'action': 'send',
+            }
+        )
+        return response
 
 
 class MessageDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -75,6 +87,17 @@ class MessageSeenView(APIView):
                     message.seen_at = message.created_at
                 message.save()
             serializer = MessageSerializer(message)
+
+            # Send WebSocket message to notify others that the message has been seen
+            channel_layer = get_channel_layer()
+            async_to_sync(channel_layer.group_send)(
+                f'chat_{message.room.id}',  # The group name based on room
+                {
+                    'type': 'send_message',  # Custom event to send to WebSocket
+                    'message': serializer.data,
+                    'action': 'seen',
+                }
+            )
             return Response(serializer.data, status=status.HTTP_200_OK)
 
         except Message.DoesNotExist:
