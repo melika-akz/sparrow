@@ -1,14 +1,12 @@
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 from django.shortcuts import get_object_or_404
-from django.utils.timezone import now
-from rest_framework import generics, status
-from rest_framework.decorators import action
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import generics, status, filters
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from ..decorator import send_websocket_message
 from ..models import Message, Room, RoomMember
 from ..serializers import MessageSerializer
 
@@ -16,6 +14,8 @@ from ..serializers import MessageSerializer
 class MessageView(generics.ListCreateAPIView):
     serializer_class = MessageSerializer
     permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    search_fields = ['body']
 
     def get_queryset(self):
         room_id = self.kwargs.get('room_id')
@@ -38,7 +38,7 @@ class MessageView(generics.ListCreateAPIView):
         response = super().create(request, *args, **kwargs)
         channel_layer = get_channel_layer()
         async_to_sync(channel_layer.group_send)(
-            f'chat_{self.kwargs.get("room_id")}',  # The room group name
+            f'chat_{self.kwargs.get("room_id")}',
             {
                 'type': 'send_message',
                 'message': response.data,

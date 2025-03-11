@@ -65,7 +65,7 @@ class TestRoom(APITransactionTestCase):
         )
 
         cls.message1 = Message.objects.create(
-            body='this is a message',
+            body='Hello!',
             sender=cls.member,
             room=cls.direct1,
         )
@@ -81,12 +81,12 @@ class TestRoom(APITransactionTestCase):
 
         response = _client(
             self,
-            path=f'/sparrow/apiv1/rooms/{self.direct1.id}/messages',
+            path=f'/sparrow/apiv1/rooms/{self.direct1.id}/messages/',
             method='Get',
         )
         assert response.status_code == 200
-        assert len(response.data) == 2
-        for data in response.data:
+        assert len(response.data['results']) == 2
+        for data in response.data['results']:
             assert data['id'] is not None
             assert data['body'] is not None
             assert data['sender_id'] == self.member.id
@@ -96,7 +96,22 @@ class TestRoom(APITransactionTestCase):
 
         response = _client(
             self,
-            path=f'/sparrow/apiv1/rooms/{self.direct2.id}/messages',
+            path=f'/sparrow/apiv1/rooms/{self.direct1.id}/messages/?search=Hello',
+            method='Get',
+        )
+        assert response.status_code == 200
+        assert len(response.data['results']) == 1
+        data = response.data['results'][0]
+        assert data['id'] is not None
+        assert data['body'] is not None
+        assert data['sender_id'] == self.member.id
+        assert data['created_at'] is not None
+        assert data['seen_at'] is None
+        assert data['room_id'] == self.direct1.id
+
+        response = _client(
+            self,
+            path=f'/sparrow/apiv1/rooms/{self.direct2.id}/messages/',
             method='POST',
             data=dict(body='this is a message'),
         )
@@ -104,7 +119,7 @@ class TestRoom(APITransactionTestCase):
 
         response = _client(
             self,
-            path=f'/sparrow/apiv1/rooms/100/messages',
+            path=f'/sparrow/apiv1/rooms/100/messages/',
             method='POST',
             data=dict(body='this is a message'),
         )
