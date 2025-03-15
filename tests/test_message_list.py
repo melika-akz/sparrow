@@ -1,4 +1,5 @@
 import pytest
+from django.core.cache import cache
 from rest_framework.test import APITransactionTestCase
 
 from apis.constants import DIRECT
@@ -79,6 +80,9 @@ class TestRoom(APITransactionTestCase):
         self.jwt_token = generate_jwt_token(self.member.id)
         self.client.force_authenticate(user=self.member, token=self.jwt_token)
 
+        cache_key = f"messages_room_{self.direct1.id}"
+        cache.delete(cache_key)
+
         response = _client(
             self,
             path=f'/sparrow/apiv1/rooms/{self.direct1.id}/messages/',
@@ -93,6 +97,8 @@ class TestRoom(APITransactionTestCase):
             assert data['created_at'] is not None
             assert data['seen_at'] is None
             assert data['room_id'] == self.direct1.id
+
+        assert cache.get(cache_key) is not None
 
         response = _client(
             self,

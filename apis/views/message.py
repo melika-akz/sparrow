@@ -1,5 +1,6 @@
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
+from django.core.cache import cache
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import generics, status, filters
@@ -19,14 +20,23 @@ class MessageView(generics.ListCreateAPIView):
 
     def get_queryset(self):
         room_id = self.kwargs.get('room_id')
+        cache_key = f"messages_room_{room_id}"
+
+        messages = cache.get(cache_key)
+        if messages is not None:
+            return messages
+
         get_object_or_404(Room, id=room_id)
-        return Message.objects.filter(room_id=room_id).select_related('sender', 'room').order_by('created_at')
+        messages = Message.objects.filter(room_id=room_id).select_related('sender', 'room').order_by('created_at')
+        cache.set(cache_key, messages, timeout=300)  # Cache for 5 minutes
+        return messages
 
     def perform_create(self, serializer):
         room_id = self.kwargs.get('room_id')
         room = get_object_or_404(Room, id=room_id)
 
         serializer.save(sender=self.request.user, room=room)
+        cache.delete(f"messages_room_{room_id}")
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
