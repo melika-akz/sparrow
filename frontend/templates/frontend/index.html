@@ -1,0 +1,28 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Messages</title>
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
+</head>
+<body>
+    <div class="message-container">
+        <h1>Messages</h1>
+        <ul id="message-list">
+            <!-- پیام‌ها اینجا نمایش داده می‌شوند -->
+        </ul>
+
+        <!-- Form to send new message -->
+        <div class="send-message">
+            <textarea id="message-input" placeholder="Type your message..."></textarea>
+            <button onclick="sendMessage()">Send Message</button>
+        </div>
+
+    </div>
+
+    <script src="{% static 'script.js' %}"></script>
+</body>
+</html>

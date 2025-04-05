@@ -27,7 +27,11 @@ class MessageView(generics.ListCreateAPIView):
             return messages
 
         get_object_or_404(Room, id=room_id)
-        messages = Message.objects.filter(room_id=room_id).select_related('sender', 'room').order_by('created_at')
+        messages = Message.objects.filter(room_id=room_id).select_related('sender', 'room').order_by('-created_at')
+        print(messages)
+        for m in messages:
+            print(m.body)
+
         cache.set(cache_key, messages, timeout=300)  # Cache for 5 minutes
         return messages
 
