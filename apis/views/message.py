@@ -9,12 +9,14 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from ..models import Message, Room, RoomMember
+from ..paginations import CustomPagination
 from ..serializers import MessageSerializer
 
 
 class MessageView(generics.ListCreateAPIView):
     serializer_class = MessageSerializer
     permission_classes = [IsAuthenticated]
+    pagination_class = CustomPagination
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     search_fields = ['body']
 
@@ -28,10 +30,6 @@ class MessageView(generics.ListCreateAPIView):
 
         get_object_or_404(Room, id=room_id)
         messages = Message.objects.filter(room_id=room_id).select_related('sender', 'room').order_by('-created_at')
-        print(messages)
-        for m in messages:
-            print(m.body)
-
         cache.set(cache_key, messages, timeout=300)  # Cache for 5 minutes
         return messages
 

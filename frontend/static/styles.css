@@ -84,3 +84,9 @@ button {
 button:hover {
     background-color: #45a049;
 }
+
+#message-list {
+    max-height: 500px;  /* Adjust based on your layout */
+    overflow-y: auto;  /* This will make the list scrollable */
+    padding-right: 10px;  /* Optionally, add space for the scrollbar */
+}

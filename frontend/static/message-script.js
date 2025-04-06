@@ -1,18 +1,30 @@
-let currentPage = 1;
+let page = 1;
+let take = 10;
 let isLoading = false;
-let hasNext = true;
+let hasMoreMessages = true;
 
 window.onload = function () {
     if (window.location.pathname === '/home/') {
         const messageList = document.getElementById('message-list');
-        fetchMessages(currentPage);
+        fetchMessages(page);  // Load latest messages
+
+        messageList.addEventListener('scroll', function () {
+            if (messageList.scrollTop === 0 && !isLoading && hasMoreMessages) {
+                page += 1;  // Load next (older) page
+                fetchMessages(page);
+            }
+        });
     }
 };
 
 function fetchMessages(page) {
     isLoading = true;
+    const messageList = document.getElementById('message-list');
 
-    fetch(`/sparrow/apiv1/rooms/1/messages/?page=${page}`, {
+    // Save current scroll height before new content loads
+    const oldScrollHeight = messageList.scrollHeight;
+
+    fetch(`/sparrow/apiv1/rooms/1/messages/?page=${page}&take=${take}`, {
         headers: {
             'Content-Type': 'application/json',
             'Authorization': 'Bearer ' + localStorage.getItem('token')
@@ -20,26 +32,26 @@ function fetchMessages(page) {
     })
         .then(response => response.json())
         .then(data => {
-            const messageList = document.getElementById('message-list');
+            if (data.results.length === 0) {
+                hasMoreMessages = false;
+            }
 
-            // Ensure messages are in the correct order (oldest at top, newest at bottom)
-            data.results.reverse().forEach(message => {
+            // Reverse if needed (API returns newest-to-oldest)
+            const messages = data.results.reverse();
+
+            messages.forEach(message => {
                 const li = document.createElement('li');
                 li.innerHTML = `
                     <div class="sender">${message.sender.title}</div>
                     <div class="message">${message.body}</div>
                     <div class="created_at">${new Date(message.created_at).toLocaleString()}</div>
                 `;
-                messageList.appendChild(li);  // Add messages at the bottom
+                messageList.prepend(li);
             });
 
-            // Keep the scroll at the bottom after adding new messages
-            messageList.scrollTop = messageList.scrollHeight;
-
-            currentPage++;
-            if (!data.next) {
-                hasNext = false;
-            }
+            // Restore scroll position (prevent jump)
+            const newScrollHeight = messageList.scrollHeight;
+            messageList.scrollTop = newScrollHeight - oldScrollHeight;
 
             isLoading = false;
         })
@@ -76,7 +88,7 @@ function sendMessage() {
         if (data) {
             document.getElementById('message-input').value = '';
 
-            // Add the new message to the bottom of the list
+            // Add the new message to the bottom
             const messageList = document.getElementById('message-list');
             const li = document.createElement('li');
             li.innerHTML = `
@@ -84,7 +96,7 @@ function sendMessage() {
                 <div class="message">${data.body}</div>
                 <div class="created_at">${new Date(data.created_at).toLocaleString()}</div>
             `;
-            messageList.appendChild(li);  // Add the sent message at the bottom
+            messageList.appendChild(li);  // Insert at the bottom of the list
 
             // Ensure the scroll is at the bottom after sending the message
             messageList.scrollTop = messageList.scrollHeight;
