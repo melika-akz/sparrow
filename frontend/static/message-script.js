@@ -36,10 +36,7 @@ function fetchMessages(page) {
                 hasMoreMessages = false;
             }
 
-            // Reverse if needed (API returns newest-to-oldest)
-            const messages = data.results.reverse();
-
-            messages.forEach(message => {
+            data.results.forEach(message => {
                 const li = document.createElement('li');
                 li.innerHTML = `
                     <div class="sender">${message.sender.title}</div>
