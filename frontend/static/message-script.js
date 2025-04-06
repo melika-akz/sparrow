@@ -6,25 +6,30 @@ let hasMoreMessages = true;
 window.onload = function () {
     if (window.location.pathname === '/home/') {
         const messageList = document.getElementById('message-list');
-        fetchMessages(page);  // Load latest messages
+        fetchMessages(page, 1);  // Load latest messages
 
         messageList.addEventListener('scroll', function () {
             if (messageList.scrollTop === 0 && !isLoading && hasMoreMessages) {
                 page += 1;  // Load next (older) page
-                fetchMessages(page);
+                fetchMessages(pagen, 1);
             }
         });
     }
 };
 
-function fetchMessages(page) {
+function loadMessages(directId) {
+    console.log("Loading messages for direct_id:", directId); // Log for debugging
+    fetchMessages(directId);
+}
+
+function fetchMessages(page, directId) {
     isLoading = true;
     const messageList = document.getElementById('message-list');
 
     // Save current scroll height before new content loads
     const oldScrollHeight = messageList.scrollHeight;
 
-    fetch(`/sparrow/apiv1/rooms/1/messages/?page=${page}&take=${take}`, {
+    fetch(`/sparrow/apiv1/rooms/${directId}/messages/?page=${page}&take=${take}`, {
         headers: {
             'Content-Type': 'application/json',
             'Authorization': 'Bearer ' + localStorage.getItem('token')
