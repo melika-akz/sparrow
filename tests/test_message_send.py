@@ -8,11 +8,10 @@ from apis.models import RoomMember, Room, Message
 from authorize.helpers import generate_jwt_token
 from authorize.models import Member
 
-from .helpers import _client
-from sparrow.asgi import application  # Correct import statement
+from .helpers import _client, WebSocketTestHelper
 
 
-class TestRoom(APITransactionTestCase):
+class TestMessage(APITransactionTestCase):
 
     @classmethod
     @pytest.mark.django_db
@@ -71,6 +70,9 @@ class TestRoom(APITransactionTestCase):
         self.jwt_token = generate_jwt_token(self.member.id)
         self.client.force_authenticate(user=self.member, token=self.jwt_token)
 
+        ws_helper = WebSocketTestHelper(self.direct1.id)
+        assert ws_helper.connect()
+
         response = _client(
             self,
             path=f'/sparrow/apiv1/rooms/{self.direct1.id}/messages/',
@@ -84,6 +86,10 @@ class TestRoom(APITransactionTestCase):
         assert response.data['created_at'] is not None
         assert response.data['seen_at'] is None
         assert response.data['room_id'] == self.direct1.id
+
+        ws_response = ws_helper.receive_json()
+        assert ws_response['action'] == 'send'
+        assert ws_response['message']['body'] == 'this is a message'
 
         response = _client(
             self,

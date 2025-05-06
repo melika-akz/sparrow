@@ -9,12 +9,15 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from ..models import Message, Room, RoomMember
+from ..paginations import CustomPagination
 from ..serializers import MessageSerializer
+from ..websockets.utils import notify
 
 
 class MessageView(generics.ListCreateAPIView):
     serializer_class = MessageSerializer
     permission_classes = [IsAuthenticated]
+    pagination_class = CustomPagination
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     search_fields = ['body']
 
@@ -27,7 +30,7 @@ class MessageView(generics.ListCreateAPIView):
             return messages
 
         get_object_or_404(Room, id=room_id)
-        messages = Message.objects.filter(room_id=room_id).select_related('sender', 'room').order_by('created_at')
+        messages = Message.objects.filter(room_id=room_id).select_related('sender', 'room').order_by('-created_at')
         cache.set(cache_key, messages, timeout=300)  # Cache for 5 minutes
         return messages
 
@@ -46,15 +49,7 @@ class MessageView(generics.ListCreateAPIView):
 
     def create(self, request, *args, **kwargs):
         response = super().create(request, *args, **kwargs)
-        channel_layer = get_channel_layer()
-        async_to_sync(channel_layer.group_send)(
-            f'chat_{self.kwargs.get("room_id")}',
-            {
-                'type': 'send_message',
-                'message': response.data,
-                'action': 'send',
-            }
-        )
+        notify(self.kwargs.get("room_id"), response.data, "send")
         return response
 
 
@@ -99,15 +94,7 @@ class MessageSeenView(APIView):
             serializer = MessageSerializer(message)
 
             # Send WebSocket message to notify others that the message has been seen
-            channel_layer = get_channel_layer()
-            async_to_sync(channel_layer.group_send)(
-                f'chat_{message.room.id}',  # The group name based on room
-                {
-                    'type': 'send_message',  # Custom event to send to WebSocket
-                    'message': serializer.data,
-                    'action': 'seen',
-                }
-            )
+            notify(message.room.id, serializer.data, 'seen')
             return Response(serializer.data, status=status.HTTP_200_OK)
 
         except Message.DoesNotExist:

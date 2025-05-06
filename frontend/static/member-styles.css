@@ -1,0 +1,59 @@
+/* frontend/static/frontend/styles.css */
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    height: 100vh;
+}
+
+.chat-container {
+    display: flex;
+    width: 100%;
+    max-width: 1200px; /* Adjust the max-width as needed */
+}
+
+.member-list {
+    width: 300px;  /* Adjust as per your layout */
+    background-color: #fff;
+    padding: 20px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    overflow-y: auto;
+    border-right: 1px solid #ccc; /* Optional: Adds a separator line */
+}
+
+.member-list h2 {
+    font-size: 24px;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+.member-list ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.member-list li {
+    background-color: #e2e2e2;
+    margin: 10px 0;
+    padding: 10px;
+    border-radius: 5px;
+    text-align: left;
+}
+
+.message-container {
+    flex-grow: 1;  /* Makes the message box take the remaining space */
+    padding: 20px;
+    background-color: white;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    margin-top: 50px;
+    max-width: 100%; /* Make sure it takes the remaining width */
+    overflow-y: auto;
+}
+
+h1 {
+    font-size: 24px;
+    color: #333

@@ -6,7 +6,7 @@ from apis.models import RoomMember, Room, Message
 from authorize.helpers import generate_jwt_token
 from authorize.models import Member
 
-from .helpers import _client
+from .helpers import _client, WebSocketTestHelper
 
 
 class TestMessage(APITransactionTestCase):
@@ -79,6 +79,9 @@ class TestMessage(APITransactionTestCase):
         self.jwt_token = generate_jwt_token(self.member.id)
         self.client.force_authenticate(user=self.member, token=self.jwt_token)
 
+        ws_helper = WebSocketTestHelper(self.direct1.id)
+        assert ws_helper.connect()
+
         response = _client(
             self,
             path=f'/sparrow/apiv1/messages/{self.message2.id}/',
@@ -89,6 +92,11 @@ class TestMessage(APITransactionTestCase):
         assert response.data['sender_id'] == self.member3.id
         assert response.data['seen_at'] is not None
         assert response.data['seen_by'] is not None
+
+
+        ws_response = ws_helper.receive_json()
+        assert ws_response['action'] == 'seen'
+        assert ws_response['message']['body'] == 'this is a message2'
 
         response = _client(
             self,
