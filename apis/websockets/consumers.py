@@ -24,25 +24,28 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     async def disconnect(self, close_code):
         # Leave the WebSocket group
-        await self.channel_layer.group_discard(
-            self.group_name,
-            self.channel_name
-        )
+        await self.channel_layer.group_discard(self.group_name, self.channel_name)
+        if hasattr(self, 'keep_alive_task'):
+            self.keep_alive_task.cancel()
 
     async def receive(self, text_data):
-        text_data_json = json.loads(text_data)
-        message = text_data_json.get('message')
-        action = text_data_json.get('action')
+        try:
+            text_data_json = json.loads(text_data)
+            message = text_data_json.get('message')
+            action = text_data_json.get('action')
 
-        # Broadcast the message to the group
-        await self.channel_layer.group_send(
-            self.group_name,
-            {
-                'type': 'send_message',
-                'message': message,
-                'action': action,
-            }
-        )
+            # Broadcast the message to the group
+            await self.channel_layer.group_send(
+                self.group_name,
+                {
+                    'type': 'send_message',
+                    'message': message,
+                    'action': action,
+                }
+            )
+        except Exception as e:
+            logger.error(f"Error in receive: {e}")
+            await self.send(text_data=json.dumps({'error': 'Invalid message format'}))
 
     async def send_message(self, event):
         # Send message to WebSocket
