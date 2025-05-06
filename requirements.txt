@@ -1,5 +1,5 @@
 asgiref==3.7.2
-backports.zoneinfo==0.2.1
+backports.zoneinfo; python_version < "3.9"
 Django==4.2.16
 django-cors-headers==4.4.0
 django-filter==24.3
