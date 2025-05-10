@@ -1,8 +1,9 @@
 from django.urls import path
 from rest_framework.routers import DefaultRouter
 
-from .views import RoomView, DirectView, DirectDetailView, MessageView, RoomDetailView, MessageDetailView, \
-    MessageSeenView
+from .views.room import RoomView, RoomDetailView
+from .views.message import MessageView, MessageDetailView, MessageSeenView
+from .views.direct import DirectView, DirectDetailView
 
 router = DefaultRouter()
 
