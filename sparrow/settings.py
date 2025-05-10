@@ -11,10 +11,16 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 from datetime import timedelta
 from pathlib import Path
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID")
+GOOGLE_CLIENT_SECRET = os.environ.get("YOUR_CLIENT_SECRET")
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
@@ -27,6 +33,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'  # ذخیره‌سازی در پایگاه داده
 
 # Application definition
 
@@ -235,3 +242,28 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = "authorize.Member"
 ASGI_APPLICATION = "sparrow.asgi.application"
 CORS_ALLOW_ALL_ORIGINS = True
+
+# Logging configuration
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        'frontend': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+    },
+}

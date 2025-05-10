@@ -90,3 +90,35 @@ button:hover {
     overflow-y: auto;  /* This will make the list scrollable */
     padding-right: 10px;  /* Optionally, add space for the scrollbar */
 }
+
+.divider {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    margin: 20px 0;
+}
+
+.divider::before,
+.divider::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid #ddd;
+}
+
+.divider span {
+    padding: 0 10px;
+    color: #666;
+    font-size: 14px;
+}
+
+/* Google Sign-In button container */
+#g_id_onload {
+    margin: 20px 0;
+}
+
+/* Ensure the Google button is centered */
+.g_id_signin {
+    display: flex;
+    justify-content: center;
+    margin: 10px 0;
+}
