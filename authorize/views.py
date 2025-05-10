@@ -7,6 +7,7 @@ from django.db.models import Q
 
 from .entities import MemberRepository
 from .models import Member
+from .paginations import MemberPagination
 from .serializers import DRFTokenSerializer, MemberSerializer
 
 
@@ -17,6 +18,8 @@ class TokenController(TokenObtainPairView):
 class MemberView(APIView):
     queryset = Member.objects.all()
     serializer_class = MemberSerializer
+    pagination_class = MemberPagination
+
 
     def get_permissions(self):
         if self.request.method in ['GET']:
@@ -58,14 +61,11 @@ class MemberView(APIView):
 
         members = Member.objects.filter(filter_conditions)
 
-        page_size = request.query_params.get('page_size', 10)
-        page = request.query_params.get('page', 1)
-        start = (int(page) - 1) * int(page_size)
-        end = start + int(page_size)
-        paginated_members = members[start:end]
-
+        paginator = self.pagination_class()
+        paginated_members = paginator.paginate_queryset(members, request)
         serializer = MemberSerializer(paginated_members, many=True)
-        return Response({"count": members.count(), "results": serializer.data}, status=status.HTTP_200_OK)
+
+        return paginator.get_paginated_response(serializer.data)
 
 
 class MemberDetailView(APIView):

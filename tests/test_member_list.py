@@ -97,6 +97,10 @@ class TestMember(APITransactionTestCase):
         )
         print(response.data)
         assert response.status_code == 200
-        assert response.data['count'] == 1
-        assert response.data['results'][0]['id'] == self.member3.id
+        assert response.data['count'] == 3
+        assert response.data['total_pages'] == 3
+        assert response.data['current_page'] == 2
+        assert response.data['next'] is not None
+        assert response.data['previous'] is not None
+        assert response.data['results'][0]['id'] == self.member2.id
 

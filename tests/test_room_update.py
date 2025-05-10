@@ -105,6 +105,7 @@ class TestRoom(APITransactionTestCase):
             method='PUT',
             data=dict(
                 name='new group name',
+                type='group',
             )
         )
         assert response.status_code == 200
