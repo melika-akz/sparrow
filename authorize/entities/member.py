@@ -16,3 +16,12 @@ class MemberRepository(IRepository):
         except Member.DoesNotExist:
             raise NotFound(detail="Member not found")
 
+    @staticmethod
+    def get_by_email(email):
+        try:
+            member = Member.objects.get(email=email)
+            return member
+
+        except Member.DoesNotExist:
+            return None
+

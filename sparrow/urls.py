@@ -19,7 +19,7 @@ from django.urls import include, path
 from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
 from rest_framework import permissions
-from authorize.views import GoogleLoginView, GoogleCallbackView
+from authorize.views import GoogleAuthView, GoogleCallbackView
 
 schema_view = get_schema_view(
    openapi.Info(
@@ -43,7 +43,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('sparrow/apiv1/', include('apis.urls')),
     path('apiv1/', include('authorize.urls')),
-    path('auth/google/', GoogleLoginView.as_view(), name='login-google'),
+    path('auth/google/', GoogleAuthView.as_view(), name='auth-google'),
     path('auth/google/callback/', GoogleCallbackView.as_view(), name='callback-google'),
 ]
 

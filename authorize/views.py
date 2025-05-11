@@ -1,14 +1,15 @@
+import urllib.parse
+
+import requests
+from django.conf import settings
+from django.db.models import Q
+from django.shortcuts import redirect
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
-from django.db.models import Q
-from rest_framework import status
-from django.contrib.auth.models import User
-from google.oauth2 import id_token
-from google.auth.transport import requests
-from rest_framework_simplejwt.tokens import RefreshToken  # If using JWT
 
 from .entities import MemberRepository
 from .models import Member
@@ -91,90 +92,58 @@ class MemberDetailView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-import random
-import string
-from django.conf import settings
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-
-class GoogleLoginView(APIView):
-    queryset = Member.objects.all()
-
-    def post(self, request):
-        # ایجاد یک state تصادفی و ذخیره آن در session
-        state = ''.join(random.choices(string.ascii_letters + string.digits, k=16))
-        request.session['oauth_state'] = state  # ذخیره state در session
-
-        # آدرس بازگشتی و پارامترهای لازم
-        redirect_uri = "http://localhost:8000/auth/google/callback/"
-        client_id = settings.GOOGLE_CLIENT_ID
-        scope = "openid email profile"
-        response_type = "code"
-
-        # ساخت URL درخواست گوگل برای ورود
-        url = f"https://accounts.google.com/o/oauth2/v2/auth?client_id={client_id}&redirect_uri={redirect_uri}&response_type={response_type}&scope={scope}&state={state}"
-
-        # هدایت کاربر به صفحه احراز هویت گوگل
-        return Response({"redirect_url": url})
+class GoogleAuthView(APIView):
+    def get(self, request):
+        base_url = settings.GOOGLE_AUTH_URL
+        params = {
+            "client_id": settings.GOOGLE_CLIENT_ID,
+            "redirect_uri": settings.GOOGLE_REDIRECT_URI,
+            "response_type": "code",
+            "scope": "openid email profile",
+            "access_type": "offline",
+            "prompt": "consent"
+        }
+        url = f"{base_url}?{urllib.parse.urlencode(params)}"
+        return redirect(url)
     
-
-import requests
-from django.conf import settings
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
 
 class GoogleCallbackView(APIView):
     queryset = Member.objects.all()
 
-
     def get(self, request):
-        # دریافت کد و state از درخواست
-        code = request.GET.get('code')
-        state = request.GET.get('state')
+        code = request.GET.get("code")
 
-        if not code or not state:
-            return Response({'error': 'Missing code or state'}, status=status.HTTP_400_BAD_REQUEST)
-
-        # مقایسه state دریافتی با مقداری که در session ذخیره کردیم
-        stored_state = request.session.get('oauth_state')
-        print(state, stored_state)
-        if state != stored_state:
-            return Response({'error': 'State mismatch'}, status=status.HTTP_400_BAD_REQUEST)
-
-        # ارسال درخواست برای دریافت توکن با استفاده از کد دریافتی
-        token_url = "https://oauth2.googleapis.com/token"
-        data = {
+        token_url = settings.GOOGLE_TOKEN_URL
+        token_data = {
             "code": code,
             "client_id": settings.GOOGLE_CLIENT_ID,
             "client_secret": settings.GOOGLE_CLIENT_SECRET,
-            "redirect_uri": "http://localhost:8000/auth/google/callback/",
-            "grant_type": "authorization_code",
+            "redirect_uri": settings.GOOGLE_REDIRECT_URI,
+            "grant_type": "authorization_code"
         }
-        token_resp = requests.post(token_url, data=data)
-        if token_resp.status_code != 200:
-            return Response({'error': 'Failed to get token', 'details': token_resp.json()}, status=status.HTTP_400_BAD_REQUEST)
+        token_response = requests.post(token_url, data=token_data)
+        token_json = token_response.json()
+        access_token = token_json.get("access_token")
+        id_token = token_json.get("id_token")
 
-        # دریافت اطلاعات کاربر با استفاده از توکن
-        token_data = token_resp.json()
-        access_token = token_data.get("access_token")
-
-        userinfo_url = "https://openidconnect.googleapis.com/v1/userinfo"
+        user_info_url = settings.GOOGLE_USER_INFO_URL
         headers = {"Authorization": f"Bearer {access_token}"}
-        userinfo_resp = requests.get(userinfo_url, headers=headers)
-        if userinfo_resp.status_code != 200:
-            return Response({'error': 'Failed to get userinfo', 'details': userinfo_resp.json()}, status=status.HTTP_400_BAD_REQUEST)
+        user_info = requests.get(user_info_url, headers=headers).json()
 
-        # اطلاعات کاربر دریافت شده
-        userinfo = userinfo_resp.json()
+        email = user_info.get("email")
+        name = user_info.get("name")
 
-        # اینجا می‌توانید کاربر را بسازید یا لاگین کنید
-        # مثلاً: user, created = User.objects.get_or_create(email=userinfo['email'], defaults={'name': userinfo['name']})
+        member = MemberRepository.get_by_email(email)
+        if not member:
+            member = Member.objects.create(
+                email=email,
+                title=name,
+                first_name=name,
+            )
+            member.save()
 
-        # بازگشت اطلاعات کاربر و توکن‌ها
-        return Response({
-            "user": userinfo,
-            "tokens": token_data
-        })
+        refresh = RefreshToken.for_user(member)
+        refresh.access_token['email'] = member.email
+        access_token = str(refresh.access_token)
+        return Response({"access_token": access_token})
 
