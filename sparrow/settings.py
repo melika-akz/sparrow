@@ -29,12 +29,12 @@ GOOGLE_USER_INFO_URL = 'https://www.googleapis.com/oauth2/v2/userinfo'
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-_t52)1rd=32cwlhjr$i4n-kr@ct9qqs^25j*hma0u^@ah-55q+'
+SECRET_KEY = os.environ.get('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DEBUG')
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['0.0.0.0', 'localhost', '127.0.0.1']
 
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'  # ذخیره‌سازی در پایگاه داده
 
@@ -152,7 +152,7 @@ DATABASES = {
         'NAME': 'sparrow',
         'USER': 'postgres',
         'PASSWORD': 'postgres',
-        'HOST': 'localhost',
+        'HOST': 'db',
         'PORT': '',
         'MIGRATE': False
     },
