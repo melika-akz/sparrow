@@ -18,8 +18,8 @@ services:
     image: postgres:15
     environment:
       POSTGRES_DB: sparrow
-      POSTGRES_USER: sparrow_user
-      POSTGRES_PASSWORD: sparrow_pass
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
     volumes:
       - postgres_data:/var/lib/postgresql/data
 

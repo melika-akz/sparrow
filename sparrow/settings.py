@@ -152,7 +152,7 @@ DATABASES = {
         'NAME': 'sparrow',
         'USER': 'postgres',
         'PASSWORD': 'postgres',
-        'HOST': 'localhost',
+        'HOST': 'db',
         'PORT': '',
         'MIGRATE': False
     },
