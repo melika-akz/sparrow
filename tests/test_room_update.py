@@ -1,7 +1,7 @@
 import pytest
 
-from apis.constants import DIRECT, GROUP
-from apis.models import RoomMember, Room
+from messenger.constants import DIRECT, GROUP
+from messenger.models import RoomMember, Room
 from authorize.models import Member
 from .helpers import BaseTestCase
 
@@ -98,7 +98,7 @@ class TestRoom(BaseTestCase):
 
         response = self._client(
             'Trying to update a group',
-            path=f'/sparrow/apiv1/rooms/{self.group.id}/',
+            path=f'/apiv1/messenger/rooms/{self.group.id}/',
             method='PUT',
             data=dict(
                 name='new group name',

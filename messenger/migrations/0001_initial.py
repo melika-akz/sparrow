@@ -48,9 +48,9 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('latest_seen_message_created_at', models.DateTimeField(blank=True, help_text='Timestamp of the last message seen by the member', null=True)),
-                ('latest_seen_message', models.ForeignKey(blank=True, help_text='The last message seen by the member in this room', null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='seen_by_members', to='apis.message')),
+                ('latest_seen_message', models.ForeignKey(blank=True, help_text='The last message seen by the member in this room', null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='seen_by_members', to='messenger.message')),
                 ('member', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
-                ('room', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='room_members', to='apis.room')),
+                ('room', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='room_members', to='messenger.room')),
             ],
             options={
                 'verbose_name': 'Room Member',
@@ -61,12 +61,12 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='room',
             name='members',
-            field=models.ManyToManyField(related_name='rooms', through='apis.RoomMember', to=settings.AUTH_USER_MODEL),
+            field=models.ManyToManyField(related_name='rooms', through='messenger.RoomMember', to=settings.AUTH_USER_MODEL),
         ),
         migrations.AddField(
             model_name='message',
             name='room',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='room_messages', to='apis.room'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='room_messages', to='messenger.room'),
         ),
         migrations.AddField(
             model_name='message',

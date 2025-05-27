@@ -1,7 +1,7 @@
 import pytest
 
-from apis.constants import DIRECT
-from apis.models import RoomMember, Room
+from messenger.constants import DIRECT
+from messenger.models import RoomMember, Room
 from authorize.models import Member
 from .helpers import BaseTestCase
 
@@ -79,7 +79,7 @@ class TestRoom(BaseTestCase):
         self.login(self.member)
         response = self._client(
             'Get a list of direct current member',
-            path='/sparrow/apiv1/directs/',
+            path='/apiv1/messenger/directs/',
             method='GET',
         )
         assert response.status_code == 200

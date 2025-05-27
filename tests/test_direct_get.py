@@ -1,7 +1,7 @@
 import pytest
 
-from apis.constants import DIRECT
-from apis.models import RoomMember, Room
+from messenger.constants import DIRECT
+from messenger.models import RoomMember, Room
 from authorize.models import Member
 from .helpers import BaseTestCase
 
@@ -80,7 +80,7 @@ class TestRoom(BaseTestCase):
 
         response = self._client(
             'Get a direct',
-            path=f'/sparrow/apiv1/directs/{self.direct1.id}/',
+            path=f'/apiv1/messenger/directs/{self.direct1.id}/',
             method='GET',
         )
         assert response.status_code == 200
@@ -89,7 +89,7 @@ class TestRoom(BaseTestCase):
 
         response = self._client(
             'Trying to Get a not exist direct',
-            path='/sparrow/apiv1/directs/0/',
+            path='/apiv1/messenger/directs/0/',
             method='GET',
         )
         assert response.status_code == 404

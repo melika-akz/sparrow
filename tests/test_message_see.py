@@ -1,7 +1,7 @@
 import pytest
 
-from apis.constants import DIRECT
-from apis.models import RoomMember, Room, Message
+from messenger.constants import DIRECT
+from messenger.models import RoomMember, Room, Message
 from authorize.models import Member
 
 from .helpers import BaseTestCase, WebSocketTestHelper
@@ -80,7 +80,7 @@ class TestMessage(BaseTestCase):
 
         response = self._client(
             'Trying to seen a message',
-            path=f'/sparrow/apiv1/messages/{self.message2.id}/',
+            path=f'/apiv1/messenger/messages/{self.message2.id}/',
             method='PATCH',
         )
         assert response.status_code == 200
@@ -95,7 +95,7 @@ class TestMessage(BaseTestCase):
 
         response = self._client(
             'Trying to seen your own message',
-            path=f'/sparrow/apiv1/messages/{self.message1.id}/',
+            path=f'/apiv1/messenger/messages/{self.message1.id}/',
             method='PATCH',
         )
         assert response.status_code == 400

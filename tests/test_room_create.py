@@ -1,7 +1,7 @@
 import pytest
 
-from apis.constants import GROUP
-from apis.models import RoomMember
+from messenger.constants import GROUP
+from messenger.models import RoomMember
 from authorize.models import Member
 from .helpers import BaseTestCase
 
@@ -31,7 +31,7 @@ class TestRoom(BaseTestCase):
 
         response = self._client(
             'Trying to create a group',
-            path='/sparrow/apiv1/rooms/',
+            path='/apiv1/messenger/rooms/',
             method='POST',
             data=dict(
                 type=GROUP,

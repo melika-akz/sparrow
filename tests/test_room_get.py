@@ -1,7 +1,7 @@
 import pytest
 
-from apis.constants import DIRECT, GROUP
-from apis.models import RoomMember, Room
+from messenger.constants import DIRECT, GROUP
+from messenger.models import RoomMember, Room
 from authorize.models import Member
 from .helpers import BaseTestCase
 
@@ -97,7 +97,7 @@ class TestRoom(BaseTestCase):
         self.login(self.member)
         response = self._client(
             'Trying to get a group',
-            path=f'/sparrow/apiv1/rooms/{self.group.id}/',
+            path=f'/apiv1/messenger/rooms/{self.group.id}/',
             method='GET',
         )
         assert response.status_code == 200

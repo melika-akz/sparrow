@@ -1,7 +1,7 @@
 import pytest
 
-from apis.constants import DIRECT
-from apis.models import RoomMember, Room
+from messenger.constants import DIRECT
+from messenger.models import RoomMember, Room
 from authorize.models import Member
 from .helpers import BaseTestCase, WebSocketTestHelper
 
@@ -69,7 +69,7 @@ class TestMessage(BaseTestCase):
 
         response = self._client(
             'Trying to send message in a direct room',
-            path=f'/sparrow/apiv1/rooms/{self.direct1.id}/messages/',
+            path=f'/apiv1/messenger/rooms/{self.direct1.id}/messages/',
             method='POST',
             data=dict(body='this is a message'),
         )
@@ -87,7 +87,7 @@ class TestMessage(BaseTestCase):
 
         response = self._client(
             'Trying to send message to a direct that you have not a room_member',
-            path=f'/sparrow/apiv1/rooms/{self.direct2.id}/messages/',
+            path=f'/apiv1/messenger/rooms/{self.direct2.id}/messages/',
             method='POST',
             data=dict(body='this is a message'),
         )

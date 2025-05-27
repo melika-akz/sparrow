@@ -1,7 +1,7 @@
 import pytest
 
-from apis.constants import DIRECT
-from apis.models import RoomMember
+from messenger.constants import DIRECT
+from messenger.models import RoomMember
 from authorize.models import Member
 from .helpers import BaseTestCase
 
@@ -30,7 +30,7 @@ class TestRoom(BaseTestCase):
         self.login(self.member)
         response = self._client(
             'Trying to create a direct',
-            path='/sparrow/apiv1/directs/',
+            path='/apiv1/messenger/directs/',
             method='POST',
             data=dict(
                 type=DIRECT,
@@ -48,7 +48,7 @@ class TestRoom(BaseTestCase):
 
         response = self._client(
             'Trying to create a direct with your self',
-            path='/sparrow/apiv1/directs/',
+            path='/apiv1/messenger/directs/',
             method='POST',
             data=dict(
                 type=DIRECT,

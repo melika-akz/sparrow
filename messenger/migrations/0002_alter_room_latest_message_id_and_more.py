@@ -9,14 +9,14 @@ class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('apis', '0001_initial'),
+        ('messenger', '0001_initial'),
     ]
 
     operations = [
         migrations.AlterField(
             model_name='room',
             name='latest_message_id',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='+', to='apis.message'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='+', to='messenger.message'),
         ),
         migrations.AlterUniqueTogether(
             name='roommember',

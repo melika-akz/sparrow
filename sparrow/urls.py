@@ -3,7 +3,6 @@ from django.urls import include, path
 from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
 from rest_framework import permissions
-from authorize.views import GoogleAuthView, GoogleCallbackView
 
 
 schema_view = get_schema_view(
@@ -25,9 +24,7 @@ urlpatterns = [
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
     path('admin/', admin.site.urls),
-    path('sparrow/apiv1/', include('apis.urls')),
     path('apiv1/', include('authorize.urls')),
-    path('auth/google/', GoogleAuthView.as_view(), name='auth-google'),
-    path('auth/google/callback/', GoogleCallbackView.as_view(), name='callback-google'),
+    path('apiv1/messenger/', include('messenger.urls')),
 ]
 

@@ -1,8 +1,8 @@
 import pytest
 from django.core.cache import cache
 
-from apis.constants import DIRECT
-from apis.models import RoomMember, Room, Message
+from messenger.constants import DIRECT
+from messenger.models import RoomMember, Room, Message
 from authorize.models import Member
 
 from .helpers import BaseTestCase
@@ -82,7 +82,7 @@ class TestRoom(BaseTestCase):
 
         response = self._client(
             'Trying to get a list of message from room',
-            path=f'/sparrow/apiv1/rooms/{self.direct1.id}/messages/',
+            path=f'/apiv1/messenger/rooms/{self.direct1.id}/messages/',
             method='Get',
         )
         assert response.status_code == 200
@@ -99,7 +99,7 @@ class TestRoom(BaseTestCase):
 
         response = self._client(
             'Trying to search a message by body',
-            path=f'/sparrow/apiv1/rooms/{self.direct1.id}/messages/?search=Hello',
+            path=f'/apiv1/messenger/rooms/{self.direct1.id}/messages/?search=Hello',
             method='Get',
         )
         assert response.status_code == 200
@@ -114,7 +114,7 @@ class TestRoom(BaseTestCase):
 
         response = self._client(
             'Trying to get a not found room messages',
-            path=f'/sparrow/apiv1/rooms/0/messages/',
+            path=f'/apiv1/messenger/rooms/0/messages/',
             method='GET',
         )
         assert response.status_code == 404

@@ -15,7 +15,7 @@ from django.core.asgi import get_asgi_application
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "sparrow.settings")
 
-from apis.websockets.routing import websocket_urlpatterns
+from messenger.websockets.routing import websocket_urlpatterns
 
 application = ProtocolTypeRouter({
     "http": get_asgi_application(),
