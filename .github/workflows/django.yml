@@ -28,13 +28,13 @@ jobs:
           --health-retries 5
 
       postgres:
-        image: postgres:13
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: test_db
+        image: postgres:15
         ports:
           - 5432:5432
+        env:
+          POSTGRES_DB: sparrow
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
