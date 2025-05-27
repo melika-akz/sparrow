@@ -93,3 +93,34 @@ class TestMessage(BaseTestCase):
         )
         assert response.status_code == 400
 
+        response = self._client(
+            'Trying to send empty message',
+            path=f'/apiv1/messenger/rooms/{self.direct1.id}/messages/',
+            method='POST',
+            data=dict(
+                body=''
+            ),
+        )
+        assert response.status_code == 400
+
+        response = self._client(
+            'Trying to send message to non-existent room',
+            path='/apiv1/messenger/rooms/99999/messages/',
+            method='POST',
+            data=dict(
+                body='Test message'
+            ),
+        )
+        assert response.status_code == 404
+
+        self.logout()
+        response = self._client(
+            'Trying to send message without authentication',
+            path=f'/apiv1/messenger/rooms/{self.direct1.id}/messages/',
+            method='POST',
+            data=dict(
+                body='Test message'
+            ),
+        )
+        assert response.status_code == 401
+
