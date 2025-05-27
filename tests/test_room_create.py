@@ -48,3 +48,38 @@ class TestRoom(BaseTestCase):
         for member in room_member:
             assert member.id in [self.member2.id, self.member.id]
 
+        response = self._client(
+            'Trying to create a group without name',
+            path='/apiv1/messenger/rooms/',
+            method='POST',
+            data=dict(
+                type=GROUP,
+                members=[self.member2.id],
+            ),
+        )
+        assert response.status_code == 400
+
+        response = self._client(
+            'Trying to create a group without members',
+            path='/apiv1/messenger/rooms/',
+            method='POST',
+            data=dict(
+                type=GROUP,
+                name='The Group Name'
+            ),
+        )
+        assert response.status_code == 400
+
+        self.logout()
+        response = self._client(
+            'Trying to create a group without authentication',
+            path='/apiv1/messenger/rooms/',
+            method='POST',
+            data=dict(
+                type=GROUP,
+                members=[self.member2.id],
+                name='The Group Name'
+            ),
+        )
+        assert response.status_code == 401
+

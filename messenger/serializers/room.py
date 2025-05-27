@@ -3,6 +3,8 @@ from django.core.exceptions import ValidationError
 
 from authorize.models import Member
 from authorize.serializers import MemberSerializer
+from sparrow.decorators import validate
+from sparrow.validators import RequiredValidator, NotNoneValidator
 from ..models import Room
 from ..entities import RoomRepository
 from ..constants import DIRECT, CHANNEL, GROUP
@@ -16,10 +18,23 @@ class RoomSerializer(serializers.ModelSerializer):
         model = Room
         fields = ['id', 'members', 'type', 'name']
 
+    @validate(
+        members=dict(
+            required=RequiredValidator,
+            not_none=NotNoneValidator,
+        ),
+        name=dict(
+            required=RequiredValidator,
+            not_none=NotNoneValidator,
+        ),
+        type=dict(
+            required=RequiredValidator,
+            not_none=NotNoneValidator,
+        )
+    )
     def validate(self, data):
         """Prevent users from creating a direct chat with themselves."""
         members = data.get('members', [])
-        print(members)
         if members is None:
             raise ValidationError('Room must have at least one member.')
 
