@@ -60,6 +60,12 @@ jobs:
         echo "DATABASE_URL=postgres://postgres:postgres@localhost:5432/test_db" >> .env
         echo "REDIS_URL=redis://localhost:6379/0" >> .env
 
+    - name: Run migrations
+      env:
+        DJANGO_SETTINGS_MODULE: sparrow.settings
+      run: |
+        python manage.py migrate
+
     - name: Run tests
       env:
         DJANGO_SETTINGS_MODULE: sparrow.settings
