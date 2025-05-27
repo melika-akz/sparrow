@@ -1,15 +1,12 @@
 import pytest
-from rest_framework.test import APITransactionTestCase
 
 from apis.constants import DIRECT
 from apis.models import RoomMember, Room
-from authorize.helpers import generate_jwt_token
 from authorize.models import Member
+from .helpers import BaseTestCase
 
-from .helpers import _client
 
-
-class TestRoom(APITransactionTestCase):
+class TestRoom(BaseTestCase):
 
     @classmethod
     @pytest.mark.django_db
@@ -79,11 +76,9 @@ class TestRoom(APITransactionTestCase):
         )
 
     def test_list(self):
-        self.jwt_token = generate_jwt_token(self.member.id)
-        self.client.force_authenticate(user=self.member, token=self.jwt_token)
-
-        response = _client(
-            self,
+        self.login(self.member)
+        response = self._client(
+            'Get a list of direct current member',
             path='/sparrow/apiv1/directs/',
             method='GET',
         )
@@ -92,6 +87,4 @@ class TestRoom(APITransactionTestCase):
         for data in response.data['results']:
             assert data['id'] in [self.direct1.id, self.direct2.id]
             assert data['type'] == DIRECT
-
-
 

@@ -1,14 +1,11 @@
 import pytest
 from rest_framework import status
-from rest_framework.test import APITransactionTestCase
 
-from authorize.helpers import generate_jwt_token
 from authorize.models import Member
+from .helpers import BaseTestCase
 
-from .helpers import _client
 
-
-class TestMember(APITransactionTestCase):
+class TestMember(BaseTestCase):
 
     @classmethod
     @pytest.mark.django_db
@@ -36,30 +33,28 @@ class TestMember(APITransactionTestCase):
         )
 
     def test_get(self):
-        """Get a Member"""
-        response = _client(
-            self,
-            path='/apiv1/members/1/',
-            method='GET',
-        )
-        assert response.status_code == 401
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-
-        self.jwt_token = generate_jwt_token(self.member.id)
-        self.client.force_authenticate(user=self.member, token=self.jwt_token)
-
-        response = _client(
-            self,
-            path=f'/apiv1/members/1/',
+        self.login(self.member)
+        response = self._client(
+            'Trying to get a Member',
+            path=f'/apiv1/members/{self.member.id}/',
             method='GET',
         )
         assert response.status_code == 200
         assert response.data['id'] == self.member.id
 
-        response = _client(
-            self,
+        response = self._client(
+            'Trying to get not found user',
             path=f'/apiv1/members/0/',
             method='GET',
         )
         assert response.status_code == 404
+
+        self.logout()
+        response = self._client(
+            'Unauthorize request',
+            path=f'/apiv1/members/{self.member.id}/',
+            method='GET',
+        )
+        assert response.status_code == 401
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 

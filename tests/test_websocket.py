@@ -1,5 +1,4 @@
 import pytest
-import json
 from channels.testing import WebsocketCommunicator
 from sparrow.asgi import application
 

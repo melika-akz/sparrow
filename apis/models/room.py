@@ -16,8 +16,7 @@ class Room(models.Model):
     name = models.CharField(max_length=255, blank=True, null=True)
     type = models.CharField(choices=TypeChoices.choices(), max_length=7)
     members = models.ManyToManyField(Member, through='RoomMember', related_name='rooms')
-    latest_message_id = models.CharField(max_length=255, null=True)
-
+    latest_message_id = models.ForeignKey('Message', null=True, blank=True, on_delete=models.SET_NULL, related_name='+')
     class Meta:
         db_table = 'room'
         verbose_name = "Room"

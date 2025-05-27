@@ -1,16 +1,14 @@
 import pytest
 from django.core.cache import cache
-from rest_framework.test import APITransactionTestCase
 
 from apis.constants import DIRECT
 from apis.models import RoomMember, Room, Message
-from authorize.helpers import generate_jwt_token
 from authorize.models import Member
 
-from .helpers import _client
+from .helpers import BaseTestCase
 
 
-class TestRoom(APITransactionTestCase):
+class TestRoom(BaseTestCase):
 
     @classmethod
     @pytest.mark.django_db
@@ -77,14 +75,13 @@ class TestRoom(APITransactionTestCase):
         )
 
     def test_list(self):
-        self.jwt_token = generate_jwt_token(self.member.id)
-        self.client.force_authenticate(user=self.member, token=self.jwt_token)
+        self.login(self.member)
 
         cache_key = f"messages_room_{self.direct1.id}"
         cache.delete(cache_key)
 
-        response = _client(
-            self,
+        response = self._client(
+            'Trying to get a list of message from room',
             path=f'/sparrow/apiv1/rooms/{self.direct1.id}/messages/',
             method='Get',
         )
@@ -100,8 +97,8 @@ class TestRoom(APITransactionTestCase):
 
         assert cache.get(cache_key) is not None
 
-        response = _client(
-            self,
+        response = self._client(
+            'Trying to search a message by body',
             path=f'/sparrow/apiv1/rooms/{self.direct1.id}/messages/?search=Hello',
             method='Get',
         )
@@ -115,19 +112,10 @@ class TestRoom(APITransactionTestCase):
         assert data['seen_at'] is None
         assert data['room_id'] == self.direct1.id
 
-        response = _client(
-            self,
-            path=f'/sparrow/apiv1/rooms/{self.direct2.id}/messages/',
-            method='POST',
-            data=dict(body='this is a message'),
-        )
-        assert response.status_code == 400
-
-        response = _client(
-            self,
-            path=f'/sparrow/apiv1/rooms/100/messages/',
-            method='POST',
-            data=dict(body='this is a message'),
+        response = self._client(
+            'Trying to get a not found room messages',
+            path=f'/sparrow/apiv1/rooms/0/messages/',
+            method='GET',
         )
         assert response.status_code == 404
 

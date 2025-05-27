@@ -1,15 +1,12 @@
 import pytest
-from rest_framework.test import APITransactionTestCase
 
 from apis.constants import DIRECT
 from apis.models import RoomMember, Room
-from authorize.helpers import generate_jwt_token
 from authorize.models import Member
+from .helpers import BaseTestCase
 
-from .helpers import _client
 
-
-class TestRoom(APITransactionTestCase):
+class TestRoom(BaseTestCase):
 
     @classmethod
     @pytest.mark.django_db
@@ -79,20 +76,19 @@ class TestRoom(APITransactionTestCase):
         )
 
     def test_list(self):
-        self.jwt_token = generate_jwt_token(self.member.id)
-        self.client.force_authenticate(user=self.member, token=self.jwt_token)
+        self.login(self.member)
 
-        response = _client(
-            self,
-            path='/sparrow/apiv1/directs/1/',
+        response = self._client(
+            'Get a direct',
+            path=f'/sparrow/apiv1/directs/{self.direct1.id}/',
             method='GET',
         )
         assert response.status_code == 200
         assert response.data['id'] == self.direct1.id
         assert response.data['type'] == DIRECT
 
-        response = _client(
-            self,
+        response = self._client(
+            'Trying to Get a not exist direct',
             path='/sparrow/apiv1/directs/0/',
             method='GET',
         )

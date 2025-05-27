@@ -1,14 +1,12 @@
 import pytest
-from rest_framework.test import APITransactionTestCase
 
 from apis.constants import DIRECT, GROUP
 from apis.models import RoomMember, Room
-from authorize.helpers import generate_jwt_token
 from authorize.models import Member
-from .helpers import _client
+from .helpers import BaseTestCase
 
 
-class TestRoom(APITransactionTestCase):
+class TestRoom(BaseTestCase):
 
     @classmethod
     @pytest.mark.django_db
@@ -96,11 +94,10 @@ class TestRoom(APITransactionTestCase):
         )
 
     def test_delete(self):
-        self.jwt_token = generate_jwt_token(self.member.id)
-        self.client.force_authenticate(user=self.member, token=self.jwt_token)
+        self.login(self.member)
 
-        response = _client(
-            self,
+        response = self._client(
+            'Trying to delete a group',
             path=f'/sparrow/apiv1/rooms/{self.group.id}/',
             method='DELETE',
         )

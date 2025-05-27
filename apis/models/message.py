@@ -18,3 +18,6 @@ class Message(models.Model):
         verbose_name_plural = "Messages"
         ordering = ['created_at']
 
+    def __str__(self):
+        return f"Message(id={self.pk}, sender={self.sender}, room={self.room})"
+

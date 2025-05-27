@@ -26,4 +26,8 @@ class RoomMember(models.Model):
         db_table = 'room_member'
         verbose_name = "Room Member"
         verbose_name_plural = "Room Members"
+        unique_together = ('room', 'member')
+
+    def __str__(self):
+        return f"RoomMember(room={self.room}, member={self.member})"
 

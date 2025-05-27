@@ -6,6 +6,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 class ChatConsumer(AsyncWebsocketConsumer):
 
     async def connect(self):
@@ -20,7 +21,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
         await self.accept()
         self.keep_alive_task = asyncio.create_task(self.send_keep_alive())
-
 
     async def disconnect(self, close_code):
         # Leave the WebSocket group

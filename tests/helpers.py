@@ -1,37 +1,31 @@
 import json
 import asyncio
 from channels.testing import WebsocketCommunicator
+
+from authorize.helpers import generate_jwt_token
 from sparrow.asgi import application
 from rest_framework.test import APITransactionTestCase
 
 
-def _client(
-        test_case: APITransactionTestCase,
-        method: str,
-        path: str,
-        data: dict = None
-):
-    """Custom client function to handle API requests.
+class BaseTestCase(APITransactionTestCase):
+    def login(self, user):
+        self.jwt_token = generate_jwt_token(user)
+        self.client.force_authenticate(user=user, token=self.jwt_token)
 
-    Args:
-        test_case (APITransactionTestCase): An instance of APITransactionTestCase for making requests.
-        method (str): The HTTP method (e.g., 'POST', 'PUT', 'PATCH', 'DELETE').
-        path (str): The API endpoint to request.
-        data (dict, optional): The data to send with the request. Defaults to None.
+    def logout(self):
+        self.client.force_authenticate(user=None)
+        self.jwt_token = None
 
-    Returns:
-        Response: The response from the API.
-    """
-    if data is not None:
-        data = json.dumps(data)
-
-    response = test_case.client.generic(
-        method,
-        path,
-        data=data,
-        content_type='application/json'
-    )
-    return response
+    def _client(self, text: str, method: str, path: str, data: dict = None):
+        if data is not None:
+            data = json.dumps(data)
+        response = self.client.generic(
+            method=method.upper(),
+            path=path,
+            data=data,
+            content_type='application/json'
+        )
+        return response
 
 
 def async_run(coro):

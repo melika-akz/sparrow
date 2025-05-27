@@ -1,14 +1,12 @@
 import pytest
-from rest_framework.test import APITransactionTestCase
 
-from apis.constants import DIRECT, GROUP
+from apis.constants import GROUP
 from apis.models import RoomMember
-from authorize.helpers import generate_jwt_token
 from authorize.models import Member
-from .helpers import _client
+from .helpers import BaseTestCase
 
 
-class TestRoom(APITransactionTestCase):
+class TestRoom(BaseTestCase):
 
     @classmethod
     @pytest.mark.django_db
@@ -29,11 +27,10 @@ class TestRoom(APITransactionTestCase):
         )
 
     def test_create(self):
-        self.jwt_token = generate_jwt_token(self.member.id)
-        self.client.force_authenticate(user=self.member, token=self.jwt_token)
+        self.login(self.member)
 
-        response = _client(
-            self,
+        response = self._client(
+            'Trying to create a group',
             path='/sparrow/apiv1/rooms/',
             method='POST',
             data=dict(

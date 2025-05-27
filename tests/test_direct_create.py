@@ -1,14 +1,12 @@
 import pytest
-from rest_framework.test import APITransactionTestCase
 
 from apis.constants import DIRECT
 from apis.models import RoomMember
-from authorize.helpers import generate_jwt_token
 from authorize.models import Member
-from .helpers import _client
+from .helpers import BaseTestCase
 
 
-class TestRoom(APITransactionTestCase):
+class TestRoom(BaseTestCase):
 
     @classmethod
     @pytest.mark.django_db
@@ -29,11 +27,9 @@ class TestRoom(APITransactionTestCase):
         )
 
     def test_create(self):
-        self.jwt_token = generate_jwt_token(self.member.id)
-        self.client.force_authenticate(user=self.member, token=self.jwt_token)
-
-        response = _client(
-            self,
+        self.login(self.member)
+        response = self._client(
+            'Trying to create a direct',
             path='/sparrow/apiv1/directs/',
             method='POST',
             data=dict(
@@ -50,8 +46,8 @@ class TestRoom(APITransactionTestCase):
         for member in room_member:
             assert member.id in [self.member2.id, self.member.id]
 
-        response = _client(
-            self,
+        response = self._client(
+            'Trying to create a direct with your self',
             path='/sparrow/apiv1/directs/',
             method='POST',
             data=dict(

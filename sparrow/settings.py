@@ -54,7 +54,6 @@ INSTALLED_APPS = [
     'apis',
     'authorize',
     'channels',
-    'frontend'
 ]
 
 MIDDLEWARE = [
@@ -152,7 +151,7 @@ DATABASES = {
         'NAME': 'sparrow',
         'USER': 'postgres',
         'PASSWORD': 'postgres',
-        'HOST': 'db',
+        'HOST': 'localhost',
         'PORT': '',
         'MIGRATE': False
     },
@@ -233,10 +232,6 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = 'static/'
-STATICFILES_DIRS = [
-    BASE_DIR / 'frontend/static',
-]
-
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
@@ -245,6 +240,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = "authorize.Member"
 ASGI_APPLICATION = "sparrow.asgi.application"
 CORS_ALLOW_ALL_ORIGINS = True
+JWT_SECRET_KEY = 'secret-key'
 
 # Logging configuration
 LOGGING = {

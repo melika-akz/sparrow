@@ -1,17 +1,12 @@
 import pytest
-from rest_framework.test import APITransactionTestCase
-from channels.testing import WebsocketCommunicator
-from django.urls import reverse
 
 from apis.constants import DIRECT
-from apis.models import RoomMember, Room, Message
-from authorize.helpers import generate_jwt_token
+from apis.models import RoomMember, Room
 from authorize.models import Member
+from .helpers import BaseTestCase, WebSocketTestHelper
 
-from .helpers import _client, WebSocketTestHelper
 
-
-class TestMessage(APITransactionTestCase):
+class TestMessage(BaseTestCase):
 
     @classmethod
     @pytest.mark.django_db
@@ -67,14 +62,13 @@ class TestMessage(APITransactionTestCase):
         )
 
     def test_send(self):
-        self.jwt_token = generate_jwt_token(self.member.id)
-        self.client.force_authenticate(user=self.member, token=self.jwt_token)
+        self.login(self.member)
 
         ws_helper = WebSocketTestHelper(self.direct1.id)
         assert ws_helper.connect()
 
-        response = _client(
-            self,
+        response = self._client(
+            'Trying to send message in a direct room',
             path=f'/sparrow/apiv1/rooms/{self.direct1.id}/messages/',
             method='POST',
             data=dict(body='this is a message'),
@@ -91,10 +85,11 @@ class TestMessage(APITransactionTestCase):
         assert ws_response['action'] == 'send'
         assert ws_response['message']['body'] == 'this is a message'
 
-        response = _client(
-            self,
+        response = self._client(
+            'Trying to send message to a direct that you have not a room_member',
             path=f'/sparrow/apiv1/rooms/{self.direct2.id}/messages/',
             method='POST',
             data=dict(body='this is a message'),
         )
         assert response.status_code == 400
+

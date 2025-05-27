@@ -1,13 +1,18 @@
+from datetime import datetime, timedelta, timezone
 import jwt
+from django.conf import settings
 
-from sparrow.settings import SECRET_KEY
 
-
-def generate_jwt_token(member_id):
+def generate_jwt_token(member):
     payload = {
-        'member_id': member_id,
+        'id': member.id,
+        'title': member.title,
+        'first_name': member.first_name,
+        'last_name': member.last_name,
+        'email': member.email,
+        'exp': datetime.now(timezone.utc) + timedelta(days=7),
+        'iat': datetime.now(timezone.utc),
     }
-    secret_key = SECRET_KEY
-    token = jwt.encode(payload, secret_key, algorithm='HS256')
+    token = jwt.encode(payload, settings.JWT_SECRET_KEY, algorithm='HS256')
     return token
 

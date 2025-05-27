@@ -1,12 +1,11 @@
 import pytest
-from rest_framework.test import APITransactionTestCase
 
 from authorize.models import Member
 
-from .helpers import _client
+from .helpers import BaseTestCase
 
 
-class TestMember(APITransactionTestCase):
+class TestMember(BaseTestCase):
 
     @classmethod
     @pytest.mark.django_db
@@ -20,9 +19,8 @@ class TestMember(APITransactionTestCase):
         )
 
     def test_create(self):
-        """Creating Member"""
-        response = _client(
-            self,
+        response = self._client(
+            'Trying register new member',
             path='/apiv1/members/',
             method='post',
             data=dict(
@@ -40,8 +38,8 @@ class TestMember(APITransactionTestCase):
         member = Member.objects.filter(id=response.data['id']).first()
         assert member.title == response.data['title']
 
-        response = _client(
-            self,
+        response = self._client(
+            'Trying register new user with existing email',
             path='/apiv1/members/',
             method='post',
             data=dict(

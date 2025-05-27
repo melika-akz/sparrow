@@ -1,14 +1,12 @@
 import pytest
 from rest_framework import status
-from rest_framework.test import APITransactionTestCase
 
-from authorize.helpers import generate_jwt_token
 from authorize.models import Member
 
-from .helpers import _client
+from .helpers import BaseTestCase
 
 
-class TestMember(APITransactionTestCase):
+class TestMember(BaseTestCase):
 
     @classmethod
     @pytest.mark.django_db
@@ -36,20 +34,9 @@ class TestMember(APITransactionTestCase):
         )
 
     def test_list(self):
-        """List of Member"""
-        response = _client(
-            self,
-            path='/apiv1/members/',
-            method='GET',
-        )
-        assert response.status_code == 401
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-
-        self.jwt_token = generate_jwt_token(self.member.id)
-        self.client.force_authenticate(user=self.member, token=self.jwt_token)
-
-        response = _client(
-            self,
+        self.login(self.member)
+        response = self._client(
+            'Trying to get list of member',
             path=f'/apiv1/members/',
             method='GET',
         )
@@ -62,8 +49,8 @@ class TestMember(APITransactionTestCase):
                 self.member3.id
             ]
 
-        response = _client(
-            self,
+        response = self._client(
+            'Trying to filter by firstname',
             path=f'/apiv1/members/?first_name=member 2',
             method='GET',
         )
@@ -71,8 +58,8 @@ class TestMember(APITransactionTestCase):
         assert response.data['count'] == 1
         assert response.data['results'][0]['id'] == self.member2.id
 
-        response = _client(
-            self,
+        response = self._client(
+            'Trying to filter by lastname',
             path=f'/apiv1/members/?last_name=member 3',
             method='GET',
         )
@@ -81,8 +68,8 @@ class TestMember(APITransactionTestCase):
         assert response.data['results'][0]['id'] == self.member3.id
 
 
-        response = _client(
-            self,
+        response = self._client(
+            'Trying to filter by email',
             path=f'/apiv1/members/?email=member3@example.com',
             method='GET',
         )
@@ -90,8 +77,8 @@ class TestMember(APITransactionTestCase):
         assert response.data['count'] == 1
         assert response.data['results'][0]['id'] == self.member3.id
 
-        response = _client(
-            self,
+        response = self._client(
+            'Trying to search member with take and skip',
             path=f'/apiv1/members/?search=member&page=2&page_size=1',
             method='GET',
         )
@@ -103,4 +90,13 @@ class TestMember(APITransactionTestCase):
         assert response.data['next'] is not None
         assert response.data['previous'] is not None
         assert response.data['results'][0]['id'] == self.member2.id
+
+        self.logout()
+        response = self._client(
+            'Unauthorize request',
+            path='/apiv1/members/',
+            method='GET',
+        )
+        assert response.status_code == 401
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
