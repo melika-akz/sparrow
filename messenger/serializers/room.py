@@ -5,7 +5,7 @@ from authorize.models import Member
 from authorize.serializers import MemberSerializer
 from sparrow.decorators import validate
 from sparrow.validators import RequiredValidator, NotNoneValidator
-from ..models import Room
+from ..models import Room, RoomMember, Message
 from ..entities import RoomRepository
 from ..constants import DIRECT, CHANNEL, GROUP
 
@@ -100,3 +100,9 @@ class RoomDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Room
         fields = ['id', 'name', 'type', 'members']
+
+
+class UnreadCountSerializer(serializers.Serializer):
+    room_type = serializers.CharField()
+    total_unread = serializers.IntegerField()
+

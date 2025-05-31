@@ -1,4 +1,5 @@
 import json
+import ujson
 import asyncio
 from channels.testing import WebsocketCommunicator
 

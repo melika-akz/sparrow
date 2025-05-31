@@ -1,3 +1,5 @@
+import debug_toolbar
+
 from django.contrib import admin
 from django.urls import include, path
 from drf_yasg import openapi
@@ -26,5 +28,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('apiv1/', include('authorize.urls')),
     path('apiv1/messenger/', include('messenger.urls')),
+    path('__debug__/', include(debug_toolbar.urls)),
 ]
 
