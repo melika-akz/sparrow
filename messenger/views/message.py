@@ -11,6 +11,7 @@ from rest_framework.views import APIView
 from ..models import Message, Room, RoomMember
 from ..paginations import CustomPagination
 from ..serializers import MessageSerializer
+from ..services import BloomFilterService
 from ..websockets.utils import notify
 
 
@@ -23,7 +24,12 @@ class MessageView(generics.ListCreateAPIView):
 
     def get_queryset(self):
         room_id = self.kwargs.get('room_id')
+        search_key = self.request.query_params.get('search_key', None)
         cache_key = f"messages_room_{room_id}"
+
+        service = BloomFilterService()
+        if search_key and not service.might_contain(search_key):
+            return Message.objects.none()
 
         messages = cache.get(cache_key)
         if messages is not None:

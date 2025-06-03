@@ -119,3 +119,20 @@ class TestRoom(BaseTestCase):
         )
         assert response.status_code == 404
 
+    def test_bloom_prevents_search(self, mocker):
+        self.login(self.member)
+
+        # mock bloom service
+        mock = mocker.patch('messenger.views.message_view.BloomFilterService')
+        instance = mock.return_value
+        instance.might_contain.return_value = False
+
+        response = self._client(
+            'Trying to search with bloom blocking',
+            path=f'/apiv1/messenger/rooms/{self.direct1.id}/messages/?search=BlockedWord',
+            method='Get',
+        )
+
+        assert response.status_code == 200
+        assert len(response.data['results']) == 0
+        instance.might_contain.assert_called_once_with('BlockedWord')
