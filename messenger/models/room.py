@@ -25,9 +25,9 @@ class Room(models.Model):
     def __str__(self):
         return self.name
 
-    def add_member(self, member, room):
+    def add_member(self, member):
         from . import RoomMember
 
-        if not RoomMember.objects.filter(member_id=member.id, room_id=room.id).exists():
+        if not RoomMember.objects.filter(member_id=member.id, room_id=self.id).exists():
             RoomMember.objects.create(room=self, member=member)
 

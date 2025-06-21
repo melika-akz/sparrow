@@ -1,6 +1,7 @@
 from django.urls import path
 from rest_framework.routers import DefaultRouter
 
+from .views.member_room import MemberRoomView
 from .views.room import RoomView, RoomDetailView
 from .views.message import MessageView, MessageDetailView, MessageSeenView
 from .views.direct import DirectView, DirectDetailView
@@ -17,6 +18,7 @@ urlpatterns = [
     path('rooms/<int:room_id>/messages/<int:message_id>/', MessageDetailView.as_view(), name='message-detail'),
     path('rooms/unread-counts/', UnreadCountView.as_view(), name='unread-counts'),
     path('messages/<int:message_id>/', MessageSeenView.as_view(), name='message-seen'),
+    path('member/rooms/', MemberRoomView.as_view(), name='member-rooms'),
 ]
 
 urlpatterns += router.urls

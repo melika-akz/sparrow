@@ -54,8 +54,8 @@ class DirectSerializer(serializers.ModelSerializer):
         if created:
             room.name = destination_member.full_name()
             room.save()
-            room.add_member(current_member, room)
-            room.add_member(destination_member, room)
+            room.add_member(current_member)
+            room.add_member(destination_member)
         return room
 
 

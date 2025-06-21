@@ -90,7 +90,7 @@ class RoomSerializer(serializers.ModelSerializer):
         room = Room.objects.create(name=name, type=type)
         for member_id in members:
             member = Member.objects.get(id=member_id)
-            room.add_member(member, room)
+            room.add_member(member)
         return room
 
 

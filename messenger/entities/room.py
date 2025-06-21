@@ -35,7 +35,7 @@ class RoomRepository:
             return room.first(), False  # Room exists
 
         room = Room.objects.create(type=DIRECT)
-        room.add_member(current_member, room)
-        room.add_member(destination_member, room)
+        room.add_member(current_member)
+        room.add_member(destination_member)
         return room, True  # Room created
 

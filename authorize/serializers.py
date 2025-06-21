@@ -14,6 +14,7 @@ class DRFTokenSerializer(TokenObtainPairSerializer):
         return token
 
 
+
 class MemberSerializer(serializers.ModelSerializer):
     class Meta:
         model = Member
@@ -25,6 +26,8 @@ class MemberSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         password = validated_data.pop('password')
         member = Member.objects.create(**validated_data, password=password)
+        member.set_password(password)
+        member.save()
         return member
 
     def update(self, instance, validated_data):
