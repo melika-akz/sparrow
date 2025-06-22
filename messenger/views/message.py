@@ -1,9 +1,8 @@
-from asgiref.sync import async_to_sync
-from channels.layers import get_channel_layer
 from django.core.cache import cache
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import generics, status, filters
+from rest_framework import status, filters
+from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView, ListAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -14,7 +13,7 @@ from ..serializers import MessageSerializer
 from ..websockets.utils import notify
 
 
-class MessageView(generics.ListCreateAPIView):
+class MessageView(ListCreateAPIView):
     serializer_class = MessageSerializer
     permission_classes = [IsAuthenticated]
     pagination_class = CustomPagination
@@ -53,7 +52,7 @@ class MessageView(generics.ListCreateAPIView):
         return response
 
 
-class MessageDetailView(generics.RetrieveUpdateDestroyAPIView):
+class MessageDetailView(RetrieveUpdateDestroyAPIView):
     serializer_class = MessageSerializer
     permission_classes = [IsAuthenticated]
 
@@ -103,3 +102,11 @@ class MessageSeenView(APIView):
         except RoomMember.DoesNotExist:
             return Response({"error": "User is not a member of the room"}, status=status.HTTP_403_FORBIDDEN)
 
+
+class MessageCountView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, room_id):
+        room = get_object_or_404(Room, id=room_id)
+        count = Message.objects.filter(room=room).count()
+        return Response({'room_id': room.id, 'count': count})
