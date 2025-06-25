@@ -20,6 +20,9 @@ class BaseTestCase(APITransactionTestCase):
     def _client(self, text: str, method: str, path: str, data: dict = None):
         if data is not None:
             data = json.dumps(data)
+        else:
+            data = json.dumps({})
+
         response = self.client.generic(
             method=method.upper(),
             path=path,

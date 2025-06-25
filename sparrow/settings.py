@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'channels',
     'debug_toolbar',
+    'django_currentuser',
 
     # Local Apps
     'messenger',

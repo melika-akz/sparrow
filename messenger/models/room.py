@@ -1,6 +1,7 @@
 from enum import Enum
 from django.db import models
 
+from .mixins import MemberStampedModel
 from ..constants import ROOM_TYPES
 from authorize.models import Member
 
@@ -12,7 +13,7 @@ class TypeChoices(Enum):
         return [(choice, choice.capitalize()) for choice in ROOM_TYPES]
 
 
-class Room(models.Model):
+class Room(MemberStampedModel, models.Model):
     name = models.CharField(max_length=255, blank=True, null=True)
     type = models.CharField(choices=TypeChoices.choices(), max_length=7)
     members = models.ManyToManyField(Member, through='RoomMember', related_name='rooms')
@@ -31,3 +32,6 @@ class Room(models.Model):
         if not RoomMember.objects.filter(member_id=member.id, room_id=self.id).exists():
             RoomMember.objects.create(room=self, member=member)
 
+    def remove_member(self, member):
+        from . import RoomMember
+        RoomMember.objects.filter(member_id=member.id, room_id=self.id).delete()

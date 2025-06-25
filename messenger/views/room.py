@@ -1,6 +1,5 @@
 from django.db.models import OuterRef, Subquery, Count, IntegerField, F, Q, Sum
 from django.shortcuts import get_object_or_404
-from requests.utils import set_environ
 from rest_framework import generics
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import IsAuthenticated
