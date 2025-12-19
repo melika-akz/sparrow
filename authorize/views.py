@@ -14,7 +14,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from .entities import MemberRepository
 from .models import Member
 from .paginations import MemberPagination
-from .serializers import DRFTokenSerializer, MemberSerializer
+from .serializers import DRFTokenSerializer, MemberSerializer, MemberDetailSerializer
 
 
 class TokenController(TokenObtainPairView):
@@ -73,6 +73,13 @@ class MemberView(APIView):
 
         return paginator.get_paginated_response(serializer.data)
 
+
+class SelfView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        serializer = MemberDetailSerializer(request.user)
+        return Response(serializer.data)
 
 class MemberDetailView(APIView):
     permission_classes = [IsAuthenticated]

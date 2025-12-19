@@ -43,3 +43,38 @@ class MemberSerializer(serializers.ModelSerializer):
 
         instance.save()
         return instance
+
+
+class MemberDetailSerializer(serializers.ModelSerializer):
+    full_name = serializers.SerializerMethodField()
+    is_staff = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Member
+        fields = [
+            'id',
+            'title',
+            'email',
+            'first_name',
+            'last_name',
+            'full_name',
+            'date_joined',
+            'modified_at',
+            'is_admin',
+            'is_staff',
+            'is_system',
+        ]
+        read_only_fields = [
+            'id',
+            'date_joined',
+            'modified_at',
+            'is_admin',
+            'is_staff',
+            'is_system',
+        ]
+
+    def get_full_name(self, obj):
+        return obj.full_name()
+
+    def get_is_staff(self, obj):
+        return obj.is_staff
